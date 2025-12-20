@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import styles from './App.module.css'
 
 type Tab = chrome.tabs.Tab
+type Theme = 'light' | 'dark'
 
 interface WindowGroup {
   windowId: number
@@ -15,16 +16,30 @@ async function fetchTabs() {
   return allTabs.filter(tab => !tab.url?.startsWith(dashboardUrl))
 }
 
+async function loadTheme(): Promise<Theme> {
+  const result = await chrome.storage.local.get('theme')
+  return (result.theme as Theme) || 'light'
+}
+
+async function saveTheme(theme: Theme) {
+  await chrome.storage.local.set({ theme })
+}
+
 function App() {
   const [tabs, setTabs] = useState<Tab[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTabIds, setSelectedTabIds] = useState<Set<number>>(new Set())
+  const [theme, setTheme] = useState<Theme>('light')
 
+  // Load theme on mount
   useEffect(() => {
-    // Initial load
+    loadTheme().then(setTheme)
+  }, [])
+
+  // Load tabs and listen for changes
+  useEffect(() => {
     fetchTabs().then(setTabs)
 
-    // Listen for tab/window changes
     const handleChange = () => {
       fetchTabs().then(setTabs)
     }
@@ -41,6 +56,12 @@ function App() {
       chrome.windows.onRemoved.removeListener(handleChange)
     }
   }, [])
+
+  function toggleTheme() {
+    const newTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(newTheme)
+    saveTheme(newTheme)
+  }
 
   const filteredTabs = useMemo(() => {
     if (!searchTerm.trim()) return tabs
@@ -63,7 +84,6 @@ function App() {
   async function switchToTab(tabId: number, windowId: number) {
     await chrome.tabs.update(tabId, { active: true })
     await chrome.windows.update(windowId, { focused: true })
-    window.close()
   }
 
   async function closeTab(tabId: number) {
@@ -113,8 +133,13 @@ function App() {
   const totalCount = tabs.length
   const selectedCount = selectedTabIds.size
 
+  const containerClasses = [
+    styles.container,
+    theme === 'dark' ? styles.dark : styles.light,
+  ].join(' ')
+
   return (
-    <div className={styles.container}>
+    <div className={containerClasses}>
       <header className={styles.header}>
         <input
           type="text"
@@ -125,18 +150,29 @@ function App() {
           autoFocus
         />
         <div className={styles.headerActions}>
-          <span className={styles.tabCount}>
-            {tabCount === totalCount
-              ? `${totalCount} tab${totalCount !== 1 ? 's' : ''}`
-              : `${tabCount} of ${totalCount} tabs`}
-          </span>
-          <button
-            className={`${styles.btn} ${styles.btnDanger}`}
-            disabled={selectedCount === 0}
-            onClick={closeSelectedTabs}
-          >
-            {selectedCount > 0 ? `Close Selected (${selectedCount})` : 'Close Selected'}
-          </button>
+          <div className={styles.headerLeft}>
+            <span className={styles.tabCount}>
+              {tabCount === totalCount
+                ? `${totalCount} tab${totalCount !== 1 ? 's' : ''}`
+                : `${tabCount} of ${totalCount} tabs`}
+            </span>
+          </div>
+          <div className={styles.headerRight}>
+            <button
+              className={styles.btnIcon}
+              onClick={toggleTheme}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
+            <button
+              className={`${styles.btn} ${styles.btnDanger}`}
+              disabled={selectedCount === 0}
+              onClick={closeSelectedTabs}
+            >
+              {selectedCount > 0 ? `Close Selected (${selectedCount})` : 'Close Selected'}
+            </button>
+          </div>
         </div>
       </header>
 

@@ -4,7 +4,8 @@
   "description": "Manage all your browser tabs across windows from a single dashboard",
   "version": "1.0.0",
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "action": {
     "default_title": "Tabregator",
