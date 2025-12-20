@@ -3,9 +3,11 @@ import styles from './App.module.css';
 
 type Tab = chrome.tabs.Tab;
 type Theme = 'light' | 'dark';
+type GroupBy = 'window' | 'domain';
 
-interface WindowGroup {
-  windowId: number;
+interface TabGroup {
+  id: string;
+  label: string;
   tabs: Tab[];
 }
 
@@ -25,15 +27,34 @@ async function saveTheme(theme: Theme) {
   await chrome.storage.local.set({ theme });
 }
 
+async function loadGroupBy(): Promise<GroupBy> {
+  const result = await chrome.storage.local.get('groupBy');
+  return (result.groupBy as GroupBy) || 'window';
+}
+
+async function saveGroupBy(groupBy: GroupBy) {
+  await chrome.storage.local.set({ groupBy });
+}
+
+function getDomain(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return 'unknown';
+  }
+}
+
 function App() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTabIds, setSelectedTabIds] = useState<Set<number>>(new Set());
   const [theme, setTheme] = useState<Theme>('light');
+  const [groupBy, setGroupBy] = useState<GroupBy>('window');
 
-  // Load theme on mount
+  // Load theme and groupBy on mount
   useEffect(() => {
     loadTheme().then(setTheme);
+    loadGroupBy().then(setGroupBy);
   }, []);
 
   // Load tabs and listen for changes
@@ -69,17 +90,36 @@ function App() {
     return tabs.filter((tab) => tab.title?.toLowerCase().includes(term));
   }, [tabs, searchTerm]);
 
-  const windowGroups = useMemo(() => {
-    const groups: Record<number, Tab[]> = {};
-    for (const tab of filteredTabs) {
-      const wid = tab.windowId;
-      if (!groups[wid]) groups[wid] = [];
-      groups[wid].push(tab);
+  const tabGroups = useMemo((): TabGroup[] => {
+    if (groupBy === 'window') {
+      const groups: Record<number, Tab[]> = {};
+      for (const tab of filteredTabs) {
+        const wid = tab.windowId;
+        if (!groups[wid]) groups[wid] = [];
+        groups[wid].push(tab);
+      }
+      const windowIds = Object.keys(groups).map(Number).sort((a, b) => a - b);
+      return windowIds.map((windowId, index) => ({
+        id: `window-${windowId}`,
+        label: `Window ${index + 1}`,
+        tabs: groups[windowId],
+      }));
+    } else {
+      const groups: Record<string, Tab[]> = {};
+      for (const tab of filteredTabs) {
+        const domain = getDomain(tab.url || '');
+        if (!groups[domain]) groups[domain] = [];
+        groups[domain].push(tab);
+      }
+      return Object.entries(groups)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([domain, tabs]) => ({
+          id: `domain-${domain}`,
+          label: domain,
+          tabs,
+        }));
     }
-    return Object.entries(groups)
-      .map(([windowId, tabs]) => ({ windowId: Number(windowId), tabs }))
-      .sort((a, b) => a.windowId - b.windowId);
-  }, [filteredTabs]);
+  }, [filteredTabs, groupBy]);
 
   async function switchToTab(tabId: number, windowId: number) {
     await chrome.tabs.update(tabId, { active: true });
@@ -160,6 +200,20 @@ function App() {
             </span>
           </div>
           <div className={styles.headerRight}>
+            <div className={styles.toggleSwitch}>
+              <button
+                className={`${styles.toggleOption} ${groupBy === 'window' ? styles.toggleActive : ''}`}
+                onClick={() => { setGroupBy('window'); saveGroupBy('window'); }}
+              >
+                Window
+              </button>
+              <button
+                className={`${styles.toggleOption} ${groupBy === 'domain' ? styles.toggleActive : ''}`}
+                onClick={() => { setGroupBy('domain'); saveGroupBy('domain'); }}
+              >
+                Domain
+              </button>
+            </div>
             <button
               className={styles.btnIcon}
               onClick={toggleTheme}
@@ -184,11 +238,11 @@ function App() {
         {filteredTabs.length === 0 ? (
           <div className={styles.emptyState}>No tabs found</div>
         ) : (
-          windowGroups.map((group, index) => (
-            <WindowGroupComponent
-              key={group.windowId}
+          tabGroups.map((group) => (
+            <TabGroupComponent
+              key={group.id}
               group={group}
-              windowNumber={index + 1}
+              groupBy={groupBy}
               searchTerm={searchTerm}
               selectedTabIds={selectedTabIds}
               onSwitchToTab={switchToTab}
@@ -203,9 +257,9 @@ function App() {
   );
 }
 
-interface WindowGroupProps {
-  group: WindowGroup;
-  windowNumber: number;
+interface TabGroupProps {
+  group: TabGroup;
+  groupBy: GroupBy;
   searchTerm: string;
   selectedTabIds: Set<number>;
   onSwitchToTab: (tabId: number, windowId: number) => void;
@@ -214,30 +268,35 @@ interface WindowGroupProps {
   onToggleSelection: (tabId: number) => void;
 }
 
-function WindowGroupComponent({
+function TabGroupComponent({
   group,
-  windowNumber,
+  groupBy,
   searchTerm,
   selectedTabIds,
   onSwitchToTab,
   onCloseTab,
   onCloseWindow,
   onToggleSelection,
-}: WindowGroupProps) {
+}: TabGroupProps) {
+  // For window groups, extract the windowId from the group id
+  const windowId = groupBy === 'window' ? Number(group.id.replace('window-', '')) : null;
+
   return (
     <div className={styles.windowGroup}>
       <div className={styles.windowHeader}>
-        <span className={styles.windowTitle}>Window {windowNumber}</span>
+        <span className={styles.windowTitle}>{group.label}</span>
         <div className={styles.windowActions}>
           <span className={styles.windowTabCount}>
             {group.tabs.length} tab{group.tabs.length !== 1 ? 's' : ''}
           </span>
-          <button
-            className={styles.btnCloseWindow}
-            onClick={() => onCloseWindow(group.windowId)}
-          >
-            Close Window
-          </button>
+          {groupBy === 'window' && windowId !== null && (
+            <button
+              className={styles.btnCloseWindow}
+              onClick={() => onCloseWindow(windowId)}
+            >
+              Close Window
+            </button>
+          )}
         </div>
       </div>
       {group.tabs.map((tab) => (

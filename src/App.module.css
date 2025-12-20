@@ -151,6 +151,38 @@
   color: var(--text-primary);
 }
 
+/* Toggle Switch */
+.toggleSwitch {
+  display: flex;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 11px;
+}
+
+.toggleOption {
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggleOption:first-child {
+  border-right: 1px solid var(--border-input);
+}
+
+.toggleOption.toggleActive {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+.toggleOption:not(.toggleActive):hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
 /* Tab List */
 .tabList {
   flex: 1;
