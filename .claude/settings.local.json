@@ -10,7 +10,9 @@
       "Bash(nvm use:*)",
       "Bash(node:*)",
       "Bash(rsvg-convert:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(sips:*)",
+      "Bash(convert:*)"
     ],
     "deny": [],
     "ask": []

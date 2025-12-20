@@ -1,75 +1,46 @@
-# React + TypeScript + Vite
+# Tabregator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Chrome extension for managing all your browser tabs across windows from a single dashboard.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- View all open tabs across all Chrome windows
+- Search/filter tabs by title in real-time
+- Click any tab to switch to it (activates tab and focuses window)
+- Close individual tabs or select multiple tabs to close at once
+- Close entire windows with all their tabs
+- Light and dark mode themes with persistent preference
+- Auto-updates when tabs or windows are created, closed, or changed
+- Keyboard shortcut to open dashboard: `Cmd+Shift+M` (Mac) / `Ctrl+Shift+M` (Windows/Linux)
 
-## React Compiler
+## Development
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+Requires Node.js 20.19+ or 22.12+ (Node 24 recommended).
 
-Note: This will impact Vite dev & build performances.
+```bash
+# Install dependencies
+npm install
 
-## Expanding the ESLint configuration
+# Build the extension
+npm run build
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Development mode with hot reload
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Build the extension with `npm run build`
+2. Open Chrome and navigate to `chrome://extensions`
+3. Enable "Developer mode" (toggle in top right)
+4. Click "Load unpacked" and select the `dist` folder
+5. The Tabregator icon will appear in your toolbar
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Usage
+
+- Click the Tabregator icon or press `Cmd+Shift+M` to open the dashboard
+- Type in the search box to filter tabs by title
+- Click a tab row to switch to that tab
+- Use checkboxes to select multiple tabs, then click "Close Selected"
+- Click "Close Window" to close all tabs in a window
+- Toggle the sun/moon icon to switch between light and dark themes

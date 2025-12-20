@@ -1,142 +1,144 @@
-import { useState, useEffect, useMemo } from 'react'
-import styles from './App.module.css'
+import { useState, useEffect, useMemo } from 'react';
+import styles from './App.module.css';
 
-type Tab = chrome.tabs.Tab
-type Theme = 'light' | 'dark'
+type Tab = chrome.tabs.Tab;
+type Theme = 'light' | 'dark';
 
 interface WindowGroup {
-  windowId: number
-  tabs: Tab[]
+  windowId: number;
+  tabs: Tab[];
 }
 
 async function fetchTabs() {
-  const allTabs = await chrome.tabs.query({})
+  const allTabs = await chrome.tabs.query({});
   // Filter out the dashboard tab itself
-  const dashboardUrl = chrome.runtime.getURL('popup.html')
-  return allTabs.filter(tab => !tab.url?.startsWith(dashboardUrl))
+  const dashboardUrl = chrome.runtime.getURL('popup.html');
+  return allTabs.filter((tab) => !tab.url?.startsWith(dashboardUrl));
 }
 
 async function loadTheme(): Promise<Theme> {
-  const result = await chrome.storage.local.get('theme')
-  return (result.theme as Theme) || 'light'
+  const result = await chrome.storage.local.get('theme');
+  return (result.theme as Theme) || 'light';
 }
 
 async function saveTheme(theme: Theme) {
-  await chrome.storage.local.set({ theme })
+  await chrome.storage.local.set({ theme });
 }
 
 function App() {
-  const [tabs, setTabs] = useState<Tab[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedTabIds, setSelectedTabIds] = useState<Set<number>>(new Set())
-  const [theme, setTheme] = useState<Theme>('light')
+  const [tabs, setTabs] = useState<Tab[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTabIds, setSelectedTabIds] = useState<Set<number>>(new Set());
+  const [theme, setTheme] = useState<Theme>('light');
 
   // Load theme on mount
   useEffect(() => {
-    loadTheme().then(setTheme)
-  }, [])
+    loadTheme().then(setTheme);
+  }, []);
 
   // Load tabs and listen for changes
   useEffect(() => {
-    fetchTabs().then(setTabs)
+    fetchTabs().then(setTabs);
 
     const handleChange = () => {
-      fetchTabs().then(setTabs)
-    }
+      fetchTabs().then(setTabs);
+    };
 
-    chrome.tabs.onCreated.addListener(handleChange)
-    chrome.tabs.onRemoved.addListener(handleChange)
-    chrome.tabs.onUpdated.addListener(handleChange)
-    chrome.windows.onRemoved.addListener(handleChange)
+    chrome.tabs.onCreated.addListener(handleChange);
+    chrome.tabs.onRemoved.addListener(handleChange);
+    chrome.tabs.onUpdated.addListener(handleChange);
+    chrome.windows.onRemoved.addListener(handleChange);
 
     return () => {
-      chrome.tabs.onCreated.removeListener(handleChange)
-      chrome.tabs.onRemoved.removeListener(handleChange)
-      chrome.tabs.onUpdated.removeListener(handleChange)
-      chrome.windows.onRemoved.removeListener(handleChange)
-    }
-  }, [])
+      chrome.tabs.onCreated.removeListener(handleChange);
+      chrome.tabs.onRemoved.removeListener(handleChange);
+      chrome.tabs.onUpdated.removeListener(handleChange);
+      chrome.windows.onRemoved.removeListener(handleChange);
+    };
+  }, []);
 
   function toggleTheme() {
-    const newTheme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
-    saveTheme(newTheme)
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    saveTheme(newTheme);
   }
 
   const filteredTabs = useMemo(() => {
-    if (!searchTerm.trim()) return tabs
-    const term = searchTerm.toLowerCase()
-    return tabs.filter(tab => tab.title?.toLowerCase().includes(term))
-  }, [tabs, searchTerm])
+    if (!searchTerm.trim()) return tabs;
+    const term = searchTerm.toLowerCase();
+    return tabs.filter((tab) => tab.title?.toLowerCase().includes(term));
+  }, [tabs, searchTerm]);
 
   const windowGroups = useMemo(() => {
-    const groups: Record<number, Tab[]> = {}
+    const groups: Record<number, Tab[]> = {};
     for (const tab of filteredTabs) {
-      const wid = tab.windowId
-      if (!groups[wid]) groups[wid] = []
-      groups[wid].push(tab)
+      const wid = tab.windowId;
+      if (!groups[wid]) groups[wid] = [];
+      groups[wid].push(tab);
     }
     return Object.entries(groups)
       .map(([windowId, tabs]) => ({ windowId: Number(windowId), tabs }))
-      .sort((a, b) => a.windowId - b.windowId)
-  }, [filteredTabs])
+      .sort((a, b) => a.windowId - b.windowId);
+  }, [filteredTabs]);
 
   async function switchToTab(tabId: number, windowId: number) {
-    await chrome.tabs.update(tabId, { active: true })
-    await chrome.windows.update(windowId, { focused: true })
+    await chrome.tabs.update(tabId, { active: true });
+    await chrome.windows.update(windowId, { focused: true });
   }
 
   async function closeTab(tabId: number) {
-    await chrome.tabs.remove(tabId)
-    setSelectedTabIds(prev => {
-      const next = new Set(prev)
-      next.delete(tabId)
-      return next
-    })
-    const updatedTabs = await fetchTabs()
-    setTabs(updatedTabs)
+    await chrome.tabs.remove(tabId);
+    setSelectedTabIds((prev) => {
+      const next = new Set(prev);
+      next.delete(tabId);
+      return next;
+    });
+    const updatedTabs = await fetchTabs();
+    setTabs(updatedTabs);
   }
 
   async function closeSelectedTabs() {
-    const ids = Array.from(selectedTabIds)
-    if (ids.length === 0) return
-    await chrome.tabs.remove(ids)
-    setSelectedTabIds(new Set())
-    const updatedTabs = await fetchTabs()
-    setTabs(updatedTabs)
+    const ids = Array.from(selectedTabIds);
+    if (ids.length === 0) return;
+    await chrome.tabs.remove(ids);
+    setSelectedTabIds(new Set());
+    const updatedTabs = await fetchTabs();
+    setTabs(updatedTabs);
   }
 
   async function closeWindow(windowId: number) {
-    await chrome.windows.remove(windowId)
-    setSelectedTabIds(prev => {
-      const next = new Set(prev)
-      tabs.filter(t => t.windowId === windowId).forEach(t => next.delete(t.id!))
-      return next
-    })
-    const updatedTabs = await fetchTabs()
-    setTabs(updatedTabs)
+    await chrome.windows.remove(windowId);
+    setSelectedTabIds((prev) => {
+      const next = new Set(prev);
+      tabs
+        .filter((t) => t.windowId === windowId)
+        .forEach((t) => next.delete(t.id!));
+      return next;
+    });
+    const updatedTabs = await fetchTabs();
+    setTabs(updatedTabs);
   }
 
   function toggleSelection(tabId: number) {
-    setSelectedTabIds(prev => {
-      const next = new Set(prev)
+    setSelectedTabIds((prev) => {
+      const next = new Set(prev);
       if (next.has(tabId)) {
-        next.delete(tabId)
+        next.delete(tabId);
       } else {
-        next.add(tabId)
+        next.add(tabId);
       }
-      return next
-    })
+      return next;
+    });
   }
 
-  const tabCount = filteredTabs.length
-  const totalCount = tabs.length
-  const selectedCount = selectedTabIds.size
+  const tabCount = filteredTabs.length;
+  const totalCount = tabs.length;
+  const selectedCount = selectedTabIds.size;
 
   const containerClasses = [
     styles.container,
     theme === 'dark' ? styles.dark : styles.light,
-  ].join(' ')
+  ].join(' ');
 
   return (
     <div className={containerClasses}>
@@ -146,7 +148,7 @@ function App() {
           className={styles.searchInput}
           placeholder="Search tabs..."
           value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
+          onChange={(e) => setSearchTerm(e.target.value)}
           autoFocus
         />
         <div className={styles.headerActions}>
@@ -170,7 +172,9 @@ function App() {
               disabled={selectedCount === 0}
               onClick={closeSelectedTabs}
             >
-              {selectedCount > 0 ? `Close Selected (${selectedCount})` : 'Close Selected'}
+              {selectedCount > 0
+                ? `Close Selected (${selectedCount})`
+                : 'Close Selected'}
             </button>
           </div>
         </div>
@@ -196,18 +200,18 @@ function App() {
         )}
       </main>
     </div>
-  )
+  );
 }
 
 interface WindowGroupProps {
-  group: WindowGroup
-  windowNumber: number
-  searchTerm: string
-  selectedTabIds: Set<number>
-  onSwitchToTab: (tabId: number, windowId: number) => void
-  onCloseTab: (tabId: number) => void
-  onCloseWindow: (windowId: number) => void
-  onToggleSelection: (tabId: number) => void
+  group: WindowGroup;
+  windowNumber: number;
+  searchTerm: string;
+  selectedTabIds: Set<number>;
+  onSwitchToTab: (tabId: number, windowId: number) => void;
+  onCloseTab: (tabId: number) => void;
+  onCloseWindow: (windowId: number) => void;
+  onToggleSelection: (tabId: number) => void;
 }
 
 function WindowGroupComponent({
@@ -236,7 +240,7 @@ function WindowGroupComponent({
           </button>
         </div>
       </div>
-      {group.tabs.map(tab => (
+      {group.tabs.map((tab) => (
         <TabItem
           key={tab.id}
           tab={tab}
@@ -248,16 +252,16 @@ function WindowGroupComponent({
         />
       ))}
     </div>
-  )
+  );
 }
 
 interface TabItemProps {
-  tab: Tab
-  searchTerm: string
-  isSelected: boolean
-  onSwitch: () => void
-  onClose: () => void
-  onToggleSelection: () => void
+  tab: Tab;
+  searchTerm: string;
+  isSelected: boolean;
+  onSwitch: () => void;
+  onClose: () => void;
+  onToggleSelection: () => void;
 }
 
 function TabItem({
@@ -268,19 +272,21 @@ function TabItem({
   onClose,
   onToggleSelection,
 }: TabItemProps) {
-  const title = tab.title || 'Untitled'
-  const url = cleanUrl(tab.url || '')
+  const title = tab.title || 'Untitled';
+  const url = cleanUrl(tab.url || '');
 
   function handleClick(e: React.MouseEvent) {
-    if ((e.target as HTMLElement).closest('input, button')) return
-    onSwitch()
+    if ((e.target as HTMLElement).closest('input, button')) return;
+    onSwitch();
   }
 
   const itemClasses = [
     styles.tabItem,
     tab.active && styles.active,
     isSelected && styles.selected,
-  ].filter(Boolean).join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={itemClasses} onClick={handleClick}>
@@ -294,8 +300,8 @@ function TabItem({
         <img
           className={styles.tabFavicon}
           src={tab.favIconUrl}
-          onError={e => {
-            (e.target as HTMLImageElement).style.display = 'none'
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
       ) : (
@@ -312,33 +318,33 @@ function TabItem({
         </div>
       </div>
       <button className={styles.tabClose} title="Close tab" onClick={onClose}>
-        ×
+        x
       </button>
     </div>
-  )
+  );
 }
 
 function cleanUrl(url: string): string {
   try {
-    const urlObj = new URL(url)
-    return urlObj.hostname + urlObj.pathname.replace(/\/$/, '')
+    const urlObj = new URL(url);
+    return urlObj.hostname + urlObj.pathname.replace(/\/$/, '');
   } catch {
-    return url
+    return url;
   }
 }
 
 function highlightText(text: string, searchTerm: string): string {
-  if (!searchTerm.trim()) return escapeHtml(text)
+  if (!searchTerm.trim()) return escapeHtml(text);
 
-  const lowerText = text.toLowerCase()
-  const lowerSearch = searchTerm.toLowerCase()
-  const index = lowerText.indexOf(lowerSearch)
+  const lowerText = text.toLowerCase();
+  const lowerSearch = searchTerm.toLowerCase();
+  const index = lowerText.indexOf(lowerSearch);
 
-  if (index === -1) return escapeHtml(text)
+  if (index === -1) return escapeHtml(text);
 
-  const before = text.substring(0, index)
-  const match = text.substring(index, index + searchTerm.length)
-  const after = text.substring(index + searchTerm.length)
+  const before = text.substring(0, index);
+  const match = text.substring(index, index + searchTerm.length);
+  const after = text.substring(index + searchTerm.length);
 
   return (
     escapeHtml(before) +
@@ -346,13 +352,13 @@ function highlightText(text: string, searchTerm: string): string {
     escapeHtml(match) +
     '</span>' +
     escapeHtml(after)
-  )
+  );
 }
 
 function escapeHtml(text: string): string {
-  const div = document.createElement('div')
-  div.textContent = text
-  return div.innerHTML
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
-export default App
+export default App;

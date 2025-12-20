@@ -214,8 +214,8 @@
 }
 
 .btnCloseWindow {
-  padding: 2px 8px;
-  font-size: 11px;
+  padding: 4px 10px;
+  font-size: 12px;
   background-color: transparent;
   border: 1px solid var(--danger);
   color: var(--danger);
@@ -298,8 +298,8 @@
 
 .tabClose {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 4rem;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,8 +307,8 @@
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  border-radius: 3px;
-  font-size: 16px;
+  border-radius: 4px;
+  font-size: 20px;
   line-height: 1;
   opacity: 0;
   transition: all 0.1s;
@@ -319,8 +319,9 @@
 }
 
 .tabClose:hover {
-  background-color: var(--danger);
-  color: #fff;
+  background-color: #fff3e0;
+  color: var(--text-primary);
+  border: 1px solid #e65100;
 }
 
 /* Empty State */
