@@ -57,6 +57,12 @@ function App() {
     loadGroupBy().then(setGroupBy);
   }, []);
 
+  // Update body background when theme changes
+  useEffect(() => {
+    document.body.style.backgroundColor =
+      theme === 'dark' ? '#1e1e1e' : '#ffffff';
+  }, [theme]);
+
   // Load tabs and listen for changes
   useEffect(() => {
     fetchTabs().then(setTabs);
@@ -98,7 +104,9 @@ function App() {
         if (!groups[wid]) groups[wid] = [];
         groups[wid].push(tab);
       }
-      const windowIds = Object.keys(groups).map(Number).sort((a, b) => a - b);
+      const windowIds = Object.keys(groups)
+        .map(Number)
+        .sort((a, b) => a - b);
       return windowIds.map((windowId, index) => ({
         id: `window-${windowId}`,
         label: `Window ${index + 1}`,
@@ -200,16 +208,27 @@ function App() {
             </span>
           </div>
           <div className={styles.headerRight}>
+            Group by:
             <div className={styles.toggleSwitch}>
               <button
-                className={`${styles.toggleOption} ${groupBy === 'window' ? styles.toggleActive : ''}`}
-                onClick={() => { setGroupBy('window'); saveGroupBy('window'); }}
+                className={`${styles.toggleOption} ${
+                  groupBy === 'window' ? styles.toggleActive : ''
+                }`}
+                onClick={() => {
+                  setGroupBy('window');
+                  saveGroupBy('window');
+                }}
               >
                 Window
               </button>
               <button
-                className={`${styles.toggleOption} ${groupBy === 'domain' ? styles.toggleActive : ''}`}
-                onClick={() => { setGroupBy('domain'); saveGroupBy('domain'); }}
+                className={`${styles.toggleOption} ${
+                  groupBy === 'domain' ? styles.toggleActive : ''
+                }`}
+                onClick={() => {
+                  setGroupBy('domain');
+                  saveGroupBy('domain');
+                }}
               >
                 Domain
               </button>
@@ -279,7 +298,8 @@ function TabGroupComponent({
   onToggleSelection,
 }: TabGroupProps) {
   // For window groups, extract the windowId from the group id
-  const windowId = groupBy === 'window' ? Number(group.id.replace('window-', '')) : null;
+  const windowId =
+    groupBy === 'window' ? Number(group.id.replace('window-', '')) : null;
 
   return (
     <div className={styles.windowGroup}>
