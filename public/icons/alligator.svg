@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="#1e5128"/>
+
+  <!-- Alligator body -->
+  <ellipse cx="58" cy="68" rx="32" ry="18" fill="#4a7c59"/>
+
+  <!-- Tail -->
+  <path d="M26 68 Q10 68 8 58 Q12 62 20 60 Q24 64 26 68" fill="#4a7c59"/>
+
+  <!-- Head -->
+  <ellipse cx="95" cy="62" rx="22" ry="14" fill="#4a7c59"/>
+
+  <!-- Snout -->
+  <ellipse cx="112" cy="64" rx="12" ry="8" fill="#4a7c59"/>
+
+  <!-- Upper jaw line -->
+  <path d="M100 64 L124 64" stroke="#1e5128" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Teeth -->
+  <path d="M105 64 L106 67 M110 64 L111 67 M115 64 L116 67 M120 64 L121 67"
+        stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Eye -->
+  <circle cx="92" cy="56" r="5" fill="#ffeb3b"/>
+  <circle cx="93" cy="56" r="2.5" fill="#1e1e1e"/>
+
+  <!-- Scales/bumps on back -->
+  <circle cx="45" cy="54" r="4" fill="#3d6b4a"/>
+  <circle cx="55" cy="52" r="4" fill="#3d6b4a"/>
+  <circle cx="65" cy="51" r="4" fill="#3d6b4a"/>
+  <circle cx="75" cy="52" r="4" fill="#3d6b4a"/>
+
+  <!-- Legs -->
+  <ellipse cx="42" cy="82" rx="6" ry="10" fill="#4a7c59"/>
+  <ellipse cx="72" cy="82" rx="6" ry="10" fill="#4a7c59"/>
+</svg>
