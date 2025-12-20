@@ -7,7 +7,6 @@
     "tabs"
   ],
   "action": {
-    "default_popup": "popup.html",
     "default_title": "Tabregator",
     "default_icon": {
       "16": "icons/icon16.png",
@@ -15,11 +14,14 @@
       "128": "icons/icon128.png"
     }
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "commands": {
     "_execute_action": {
       "suggested_key": {
-        "default": "Ctrl+Shift+T",
-        "mac": "Command+Shift+T"
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
       },
       "description": "Open Tabregator dashboard"
     }

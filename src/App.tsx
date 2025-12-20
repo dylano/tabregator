@@ -9,7 +9,10 @@ interface WindowGroup {
 }
 
 async function fetchTabs() {
-  return chrome.tabs.query({})
+  const allTabs = await chrome.tabs.query({})
+  // Filter out the dashboard tab itself
+  const dashboardUrl = chrome.runtime.getURL('popup.html')
+  return allTabs.filter(tab => !tab.url?.startsWith(dashboardUrl))
 }
 
 function App() {
@@ -18,11 +21,25 @@ function App() {
   const [selectedTabIds, setSelectedTabIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
-    let cancelled = false
-    fetchTabs().then(allTabs => {
-      if (!cancelled) setTabs(allTabs)
-    })
-    return () => { cancelled = true }
+    // Initial load
+    fetchTabs().then(setTabs)
+
+    // Listen for tab/window changes
+    const handleChange = () => {
+      fetchTabs().then(setTabs)
+    }
+
+    chrome.tabs.onCreated.addListener(handleChange)
+    chrome.tabs.onRemoved.addListener(handleChange)
+    chrome.tabs.onUpdated.addListener(handleChange)
+    chrome.windows.onRemoved.addListener(handleChange)
+
+    return () => {
+      chrome.tabs.onCreated.removeListener(handleChange)
+      chrome.tabs.onRemoved.removeListener(handleChange)
+      chrome.tabs.onUpdated.removeListener(handleChange)
+      chrome.windows.onRemoved.removeListener(handleChange)
+    }
   }, [])
 
   const filteredTabs = useMemo(() => {
