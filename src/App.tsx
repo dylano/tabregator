@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import styles from './App.module.css';
 
 type Tab = chrome.tabs.Tab;
@@ -50,11 +50,23 @@ function App() {
   const [selectedTabIds, setSelectedTabIds] = useState<Set<number>>(new Set());
   const [theme, setTheme] = useState<Theme>('light');
   const [groupBy, setGroupBy] = useState<GroupBy>('window');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Load theme and groupBy on mount
   useEffect(() => {
     loadTheme().then(setTheme);
     loadGroupBy().then(setGroupBy);
+  }, []);
+
+  // Focus and select search input when window gains focus
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    return () => window.removeEventListener('focus', handleWindowFocus);
   }, []);
 
   // Update body background when theme changes
@@ -192,6 +204,7 @@ function App() {
     <div className={containerClasses}>
       <header className={styles.header}>
         <input
+          ref={searchInputRef}
           type="text"
           className={styles.searchInput}
           placeholder="Search tabs..."
