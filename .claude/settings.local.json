@@ -12,7 +12,8 @@
       "Bash(rsvg-convert:*)",
       "Bash(ls:*)",
       "Bash(sips:*)",
-      "Bash(convert:*)"
+      "Bash(convert:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
