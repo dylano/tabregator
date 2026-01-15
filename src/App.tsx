@@ -179,6 +179,18 @@ function App() {
     setTabs(updatedTabs);
   }
 
+  async function closeTabGroup(tabIds: number[]) {
+    if (tabIds.length === 0) return;
+    await chrome.tabs.remove(tabIds);
+    setSelectedTabIds((prev) => {
+      const next = new Set(prev);
+      tabIds.forEach((id) => next.delete(id));
+      return next;
+    });
+    const updatedTabs = await fetchTabs();
+    setTabs(updatedTabs);
+  }
+
   function toggleSelection(tabId: number) {
     setSelectedTabIds((prev) => {
       const next = new Set(prev);
@@ -280,6 +292,7 @@ function App() {
               onSwitchToTab={switchToTab}
               onCloseTab={closeTab}
               onCloseWindow={closeWindow}
+              onCloseGroup={closeTabGroup}
               onToggleSelection={toggleSelection}
             />
           ))
@@ -297,6 +310,7 @@ interface TabGroupProps {
   onSwitchToTab: (tabId: number, windowId: number) => void;
   onCloseTab: (tabId: number) => void;
   onCloseWindow: (windowId: number) => void;
+  onCloseGroup: (tabIds: number[]) => void;
   onToggleSelection: (tabId: number) => void;
 }
 
@@ -308,6 +322,7 @@ function TabGroupComponent({
   onSwitchToTab,
   onCloseTab,
   onCloseWindow,
+  onCloseGroup,
   onToggleSelection,
 }: TabGroupProps) {
   // For window groups, extract the windowId from the group id
@@ -328,6 +343,14 @@ function TabGroupComponent({
               onClick={() => onCloseWindow(windowId)}
             >
               Close Window
+            </button>
+          )}
+          {groupBy === 'domain' && (
+            <button
+              className={styles.btnCloseWindow}
+              onClick={() => onCloseGroup(group.tabs.map((t) => t.id!))}
+            >
+              Close Group
             </button>
           )}
         </div>
