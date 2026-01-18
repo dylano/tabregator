@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styles from './App.module.css';
+import { ConfirmDialog } from './ConfirmDialog';
 
 type Tab = chrome.tabs.Tab;
 type Theme = 'light' | 'dark';
@@ -44,13 +45,25 @@ function getDomain(url: string): string {
   }
 }
 
+interface ConfirmDialogState {
+  isOpen: boolean;
+  message: string;
+  onConfirm: () => void;
+}
+
 function App() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTabIds, setSelectedTabIds] = useState<Set<number>>(new Set());
   const [theme, setTheme] = useState<Theme>('light');
   const [groupBy, setGroupBy] = useState<GroupBy>('window');
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({
+    isOpen: false,
+    message: '',
+    onConfirm: () => {},
+  });
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   // Load theme and groupBy on mount
   useEffect(() => {
@@ -166,29 +179,61 @@ function App() {
     setTabs(updatedTabs);
   }
 
-  async function closeWindow(windowId: number) {
-    await chrome.windows.remove(windowId);
-    setSelectedTabIds((prev) => {
-      const next = new Set(prev);
-      tabs
-        .filter((t) => t.windowId === windowId)
-        .forEach((t) => next.delete(t.id!));
-      return next;
+  function showConfirmDialog(message: string, onConfirm: () => void) {
+    setConfirmDialog({
+      isOpen: true,
+      message,
+      onConfirm,
     });
-    const updatedTabs = await fetchTabs();
-    setTabs(updatedTabs);
+  }
+
+  function closeConfirmDialog() {
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+    dialogRef.current?.close();
+  }
+
+  function handleConfirm() {
+    confirmDialog.onConfirm();
+    closeConfirmDialog();
+  }
+
+  async function closeWindow(windowId: number) {
+    const tabsInWindow = tabs.filter((t) => t.windowId === windowId);
+    const tabCount = tabsInWindow.length;
+    
+    showConfirmDialog(
+      `This will close ${tabCount} tab${tabCount !== 1 ? 's' : ''}. Continue?`,
+      async () => {
+        await chrome.windows.remove(windowId);
+        setSelectedTabIds((prev) => {
+          const next = new Set(prev);
+          tabsInWindow.forEach((t) => next.delete(t.id!));
+          return next;
+        });
+        const updatedTabs = await fetchTabs();
+        setTabs(updatedTabs);
+      }
+    );
   }
 
   async function closeTabGroup(tabIds: number[]) {
     if (tabIds.length === 0) return;
-    await chrome.tabs.remove(tabIds);
-    setSelectedTabIds((prev) => {
-      const next = new Set(prev);
-      tabIds.forEach((id) => next.delete(id));
-      return next;
-    });
-    const updatedTabs = await fetchTabs();
-    setTabs(updatedTabs);
+    
+    const tabCount = tabIds.length;
+    
+    showConfirmDialog(
+      `This will close ${tabCount} tab${tabCount !== 1 ? 's' : ''}. Continue?`,
+      async () => {
+        await chrome.tabs.remove(tabIds);
+        setSelectedTabIds((prev) => {
+          const next = new Set(prev);
+          tabIds.forEach((id) => next.delete(id));
+          return next;
+        });
+        const updatedTabs = await fetchTabs();
+        setTabs(updatedTabs);
+      }
+    );
   }
 
   function toggleSelection(tabId: number) {
@@ -214,6 +259,13 @@ function App() {
 
   return (
     <div className={containerClasses}>
+      <ConfirmDialog
+        ref={dialogRef}
+        isOpen={confirmDialog.isOpen}
+        message={confirmDialog.message}
+        onConfirm={handleConfirm}
+        onCancel={closeConfirmDialog}
+      />
       <header className={styles.header}>
         <input
           ref={searchInputRef}

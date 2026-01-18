@@ -1,0 +1,51 @@
+/* Dialog */
+.dialog {
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--bg-primary);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  color: var(--text-primary);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+.dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.dialogContent {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialogMessage {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.dialogActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btnSecondary {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btnSecondary:hover {
+  background-color: var(--bg-hover);
+}
