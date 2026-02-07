@@ -10,7 +10,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "package": "npm run build && cd dist && zip -r ../tabregator-$(node -p \"require('../public/manifest.json').version\").zip .",
+    "release": "npm run package && gh release create v$(node -p \"require('./public/manifest.json').version\") tabregator-$(node -p \"require('./public/manifest.json').version\").zip --title \"v$(node -p \"require('./public/manifest.json').version\")\" --generate-notes"
   },
   "dependencies": {
     "react": "^19.2.0",
