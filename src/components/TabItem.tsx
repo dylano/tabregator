@@ -58,6 +58,7 @@ export function TabItem({
         className={styles.tabCheckbox}
         checked={isSelected}
         onChange={onToggleSelection}
+        onClick={(e) => e.stopPropagation()}
       />
       {tab.favIconUrl ? (
         <img

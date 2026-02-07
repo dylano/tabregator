@@ -15,7 +15,9 @@
       "Bash(convert:*)",
       "Bash(tree:*)",
       "Bash(npx tsc:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(brew list:*)",
+      "Bash(magick:*)"
     ],
     "deny": [],
     "ask": []
