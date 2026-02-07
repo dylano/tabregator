@@ -451,3 +451,25 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.newWindowDropZone {
+  border: 2px dashed var(--border-color);
+  border-radius: 6px;
+  padding: 24px;
+  margin: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.15s;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.newWindowDropZone.dropZoneActive {
+  border-color: var(--accent);
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}

@@ -216,6 +216,12 @@ function App() {
     setTabs(updatedTabs);
   }
 
+  async function moveTabToNewWindow(tabId: number) {
+    await chrome.windows.create({ tabId, focused: false });
+    const updatedTabs = await fetchTabs();
+    setTabs(updatedTabs);
+  }
+
   const DRAG_THRESHOLD = 5; // pixels before drag starts
 
   function handleMouseDown(tab: Tab, e: React.MouseEvent) {
@@ -272,7 +278,12 @@ function App() {
     if (dragState) {
       const handleGlobalMouseUp = () => {
         if (dragState.isDragging && dropTarget) {
-          moveTab(dragState.tabId, dropTarget.windowId, dropTarget.index);
+          if (dropTarget.windowId === -1) {
+            // Special case: create new window
+            moveTabToNewWindow(dragState.tabId);
+          } else {
+            moveTab(dragState.tabId, dropTarget.windowId, dropTarget.index);
+          }
         }
         setDragState(null);
         setDropTarget(null);
@@ -438,6 +449,18 @@ function App() {
           </div>
         </div>
       </header>
+
+      {/* New Window Drop Zone - only visible when dragging */}
+      {groupBy === 'window' && dragState?.isDragging && (
+        <div
+          className={`${styles.newWindowDropZone} ${
+            dropTarget?.windowId === -1 ? styles.dropZoneActive : ''
+          }`}
+          onMouseEnter={() => setDropTarget({ windowId: -1, index: 0 })}
+        >
+          Drop here to open in new window
+        </div>
+      )}
 
       <main className={styles.tabList}>
         {filteredTabs.length === 0 ? (
