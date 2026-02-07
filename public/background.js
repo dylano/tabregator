@@ -5,7 +5,7 @@ chrome.action.onClicked.addListener(() => {
 
 // Open dashboard in a new tab (or focus existing one)
 async function openDashboard() {
-  const dashboardUrl = chrome.runtime.getURL('popup.html')
+  const dashboardUrl = chrome.runtime.getURL('tabregator.html')
 
   // Check if dashboard tab already exists
   const tabs = await chrome.tabs.query({ url: dashboardUrl })

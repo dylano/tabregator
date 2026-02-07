@@ -15,7 +15,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, 'popup.html'),
+        tabregator: resolve(__dirname, 'tabregator.html'),
       },
       output: {
         entryFileNames: 'assets/[name].js',

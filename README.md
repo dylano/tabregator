@@ -1,6 +1,6 @@
 <img src="public/icons/icon128.png" alt="Tabregator" width="128" height="128">
 
-# Tabregator 
+# Tabregator
 
 A Chrome extension for managing all your browser tabs across windows from a single dashboard.
 
@@ -12,7 +12,7 @@ A Chrome extension for managing all your browser tabs across windows from a sing
 - Click any tab to switch to it (activates tab and focuses window)
 - Close individual tabs or select multiple tabs to close at once
 - Close entire windows with all their tabs
-- **Drag and drop tabs** (in window view) to reorder within a window, move between windows, or create a new window
+- Drag and drop tabs (in window view) to reorder within a window, move between windows, or create a new window
 - Light and dark mode themes with persistent preference
 - Responsive layout: automatically switches to two-column grid on wide screens
 - Auto-updates when tabs or windows are created, closed, or changed
