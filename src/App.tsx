@@ -74,7 +74,10 @@ function App() {
     onConfirm: () => {},
   });
   const [dragState, setDragState] = useState<DragState | null>(null);
-  const [dropTarget, setDropTarget] = useState<{ windowId: number; index: number } | null>(null);
+  const [dropTarget, setDropTarget] = useState<{
+    windowId: number;
+    index: number;
+  } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -210,8 +213,15 @@ function App() {
     closeConfirmDialog();
   }
 
-  async function moveTab(tabId: number, targetWindowId: number, targetIndex: number) {
-    await chrome.tabs.move(tabId, { windowId: targetWindowId, index: targetIndex });
+  async function moveTab(
+    tabId: number,
+    targetWindowId: number,
+    targetIndex: number,
+  ) {
+    await chrome.tabs.move(tabId, {
+      windowId: targetWindowId,
+      index: targetIndex,
+    });
     const updatedTabs = await fetchTabs();
     setTabs(updatedTabs);
   }
@@ -244,7 +254,11 @@ function App() {
     if (dragState) {
       if (dragState.isDragging && dropTarget) {
         // Complete the drag
-        moveTab(dragState.tabId, dropTarget.windowId, dropTarget.index === -1 ? -1 : dropTarget.index);
+        moveTab(
+          dragState.tabId,
+          dropTarget.windowId,
+          dropTarget.index === -1 ? -1 : dropTarget.index,
+        );
       } else if (!dragState.isDragging) {
         // Was just a click, switch to the tab
         switchToTab();
@@ -261,7 +275,12 @@ function App() {
     const dy = Math.abs(e.clientY - dragState.startY);
 
     if (!dragState.isDragging && (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD)) {
-      setDragState({ ...dragState, isDragging: true, currentX: e.clientX, currentY: e.clientY });
+      setDragState({
+        ...dragState,
+        isDragging: true,
+        currentX: e.clientX,
+        currentY: e.clientY,
+      });
     } else if (dragState.isDragging) {
       setDragState({ ...dragState, currentX: e.clientX, currentY: e.clientY });
     }
@@ -320,7 +339,7 @@ function App() {
   async function closeWindow(windowId: number) {
     const tabsInWindow = tabs.filter((t) => t.windowId === windowId);
     const tabCount = tabsInWindow.length;
-    
+
     showConfirmDialog(
       `This will close ${tabCount} tab${tabCount !== 1 ? 's' : ''}. Continue?`,
       async () => {
@@ -332,15 +351,15 @@ function App() {
         });
         const updatedTabs = await fetchTabs();
         setTabs(updatedTabs);
-      }
+      },
     );
   }
 
   async function closeTabGroup(tabIds: number[]) {
     if (tabIds.length === 0) return;
-    
+
     const tabCount = tabIds.length;
-    
+
     showConfirmDialog(
       `This will close ${tabCount} tab${tabCount !== 1 ? 's' : ''}. Continue?`,
       async () => {
@@ -352,7 +371,7 @@ function App() {
         });
         const updatedTabs = await fetchTabs();
         setTabs(updatedTabs);
-      }
+      },
     );
   }
 
@@ -450,19 +469,18 @@ function App() {
         </div>
       </header>
 
-      {/* New Window Drop Zone - only visible when dragging */}
-      {groupBy === 'window' && dragState?.isDragging && (
-        <div
-          className={`${styles.newWindowDropZone} ${
-            dropTarget?.windowId === -1 ? styles.dropZoneActive : ''
-          }`}
-          onMouseEnter={() => setDropTarget({ windowId: -1, index: 0 })}
-        >
-          Drop here to open in new window
-        </div>
-      )}
-
       <main className={styles.tabList}>
+        {/* New Window Drop Zone - absolute positioned overlay */}
+        {groupBy === 'window' && dragState?.isDragging && (
+          <div
+            className={`${styles.newWindowDropZone} ${
+              dropTarget?.windowId === -1 ? styles.dropZoneActive : ''
+            }`}
+            onMouseEnter={() => setDropTarget({ windowId: -1, index: 0 })}
+          >
+            Move to new window
+          </div>
+        )}
         {filteredTabs.length === 0 ? (
           <div className={styles.emptyState}>No tabs found</div>
         ) : (
@@ -489,30 +507,31 @@ function App() {
       </main>
 
       {/* Drag Preview */}
-      {dragState?.isDragging && (() => {
-        const draggedTab = tabs.find(t => t.id === dragState.tabId);
-        if (!draggedTab) return null;
-        return (
-          <div
-            className={styles.dragPreview}
-            style={{
-              left: dragState.currentX,
-              top: dragState.currentY,
-            }}
-          >
-            {draggedTab.favIconUrl && (
-              <img
-                className={styles.tabFavicon}
-                src={draggedTab.favIconUrl}
-                alt=""
-              />
-            )}
-            <span className={styles.dragPreviewTitle}>
-              {draggedTab.title || 'Untitled'}
-            </span>
-          </div>
-        );
-      })()}
+      {dragState?.isDragging &&
+        (() => {
+          const draggedTab = tabs.find((t) => t.id === dragState.tabId);
+          if (!draggedTab) return null;
+          return (
+            <div
+              className={styles.dragPreview}
+              style={{
+                left: dragState.currentX,
+                top: dragState.currentY,
+              }}
+            >
+              {draggedTab.favIconUrl && (
+                <img
+                  className={styles.tabFavicon}
+                  src={draggedTab.favIconUrl}
+                  alt=""
+                />
+              )}
+              <span className={styles.dragPreviewTitle}>
+                {draggedTab.title || 'Untitled'}
+              </span>
+            </div>
+          );
+        })()}
     </div>
   );
 }
@@ -593,15 +612,28 @@ function TabGroupComponent({
           onToggleSelection={() => onToggleSelection(tab.id!)}
           isDragEnabled={isDragEnabled}
           isDragging={!!(dragState?.isDragging && dragState?.tabId === tab.id)}
-          isDropTarget={!!(dragState?.isDragging && dropTarget?.windowId === tab.windowId && dropTarget?.index === index)}
+          isDropTarget={
+            !!(
+              dragState?.isDragging &&
+              dropTarget?.windowId === tab.windowId &&
+              dropTarget?.index === index
+            )
+          }
           onMouseDown={(e) => onMouseDown(tab, e)}
-          onMouseUp={() => onMouseUp(() => onSwitchToTab(tab.id!, tab.windowId))}
-          onMouseEnter={() => windowId !== null && onMouseEnterTab(windowId, index)}
+          onMouseUp={() =>
+            onMouseUp(() => onSwitchToTab(tab.id!, tab.windowId))
+          }
+          onMouseEnter={() =>
+            windowId !== null && onMouseEnterTab(windowId, index)
+          }
         />
       ))}
-      {isDragEnabled && dragState?.isDragging && (
+      {/* Drop zone always rendered to prevent layout shift, hidden when not dragging */}
+      {isDragEnabled && (
         <div
           className={`${styles.dropZoneEnd} ${
+            dragState?.isDragging ? styles.dropZoneVisible : ''
+          } ${
             dropTarget?.windowId === windowId && dropTarget?.index === -1
               ? styles.dropZoneActive
               : ''
