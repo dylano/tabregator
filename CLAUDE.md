@@ -35,6 +35,11 @@ popup.html         # HTML entry point
 - Light/dark theme with persistence
 - Keyboard shortcut: `Cmd+Shift+M` (Mac) / `Ctrl+Shift+M` (Windows)
 - Auto-updates when tabs change
+- **Drag and drop** (window grouping mode):
+  - Reorder tabs within a window
+  - Move tabs between windows
+  - Drop on "Move to new window" zone to open tab in a new window
+  - Press ESC to cancel drag
 
 ## Chrome APIs Used
 
@@ -51,11 +56,15 @@ popup.html         # HTML entry point
 - `selectedTabIds: Set<number>` - selected for bulk operations
 - `theme: 'light' | 'dark'` - persisted to storage
 - `groupBy: 'window' | 'domain'` - persisted to storage
+- `dragState: DragState | null` - tracks active drag operation (tab id, source window, cursor position)
+- `dropTarget: { windowId, index } | null` - current drop target during drag
 
 ### Key Functions
 - `fetchTabs()` - queries chrome.tabs API, filters out dashboard
 - `switchToTab()` - activates tab and focuses its window
 - `closeTab()` / `closeSelectedTabs()` / `closeWindow()` - removal operations
+- `moveTab()` - moves tab to new position/window via `chrome.tabs.move()`
+- `moveTabToNewWindow()` - creates new window with tab via `chrome.windows.create()`
 
 ### Event Listeners
 The app listens to `chrome.tabs.onCreated`, `onRemoved`, `onUpdated`, and `chrome.windows.onRemoved` to auto-refresh the tab list.
@@ -69,6 +78,8 @@ The app listens to `chrome.tabs.onCreated`, `onRemoved`, `onUpdated`, and `chrom
 Theme variables are defined in App.module.css with `[data-theme="dark"]` and `[data-theme="light"]` selectors. Layout uses CSS Grid with `repeat(auto-fit, minmax(500px, 1fr))` for responsive columns.
 
 ## Build & Development
+
+**Node version**: This project requires Node 24. Run `nvm use 24` to switch to the correct version (see `engines` in package.json).
 
 ```bash
 npm run dev      # Dev server with hot reload

@@ -10,6 +10,7 @@ A Chrome extension for managing all your browser tabs across windows from a sing
 - Click any tab to switch to it (activates tab and focuses window)
 - Close individual tabs or select multiple tabs to close at once
 - Close entire windows with all their tabs
+- **Drag and drop tabs** (in window view) to reorder within a window, move between windows, or create a new window
 - Light and dark mode themes with persistent preference
 - Responsive layout: automatically switches to two-column grid on wide screens
 - Auto-updates when tabs or windows are created, closed, or changed
@@ -47,3 +48,8 @@ npm run dev
 - Use checkboxes to select multiple tabs, then click "Close Selected"
 - Click "Close Window" to close all tabs in a window (when grouped by window)
 - Toggle the sun/moon icon to switch between light and dark themes
+- **Drag and drop** (when grouped by Window):
+  - Drag a tab to reorder it within its window
+  - Drag a tab to another window group to move it there
+  - Drag a tab to the yellow "Move to new window" zone to open it in a new window
+  - Press ESC while dragging to cancel
