@@ -1,0 +1,109 @@
+/* Tab Item */
+.tabItem {
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  gap: 8px;
+  position: relative;
+  user-select: none;
+}
+
+.tabItem:hover {
+  background-color: var(--bg-hover);
+}
+
+.tabItem.active {
+  background-color: var(--bg-active);
+}
+
+.tabItem.selected {
+  background-color: var(--bg-selected);
+}
+
+.tabItem.draggable {
+  cursor: grab;
+}
+
+.tabItem.dragging {
+  opacity: 0.5;
+  cursor: grabbing !important;
+}
+
+.tabItem.dropTarget {
+  border-top: 2px solid var(--accent);
+}
+
+.tabCheckbox {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.tabFavicon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.tabFaviconPlaceholder {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  background-color: var(--favicon-placeholder);
+  border-radius: 2px;
+}
+
+.tabInfo {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tabTitle {
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabUrl {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabClose {
+  flex-shrink: 0;
+  width: 4rem;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 20px;
+  line-height: 1;
+  opacity: 0;
+  transition: all 0.1s;
+}
+
+.tabItem:hover .tabClose {
+  opacity: 1;
+}
+
+.tabClose:hover {
+  background-color: var(--close-bg);
+  color: var(--close-text);
+  border: 1px solid var(--close-border);
+}

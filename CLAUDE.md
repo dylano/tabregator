@@ -13,15 +13,29 @@ A Chrome extension for managing all browser tabs across windows from a single da
 
 ```
 src/
-  App.tsx          # Main component - all state, tab operations, rendering
-  main.tsx         # React entry point
-  App.module.css   # All component styling, theme variables
-  index.css        # Global styles
+  App.tsx                    # Main component - state, effects, event handlers
+  App.module.css             # Theme variables, layout, header, buttons
+  main.tsx                   # React entry point
+  index.css                  # Global styles
+  types.ts                   # Shared TypeScript types (Theme, GroupBy, DragState, etc.)
+  components/
+    TabGroup.tsx             # Window/domain group with header and tab list
+    TabGroup.module.css      # Group container, header, close button styles
+    TabItem.tsx              # Individual tab row with favicon, title, actions
+    TabItem.module.css       # Tab row, checkbox, favicon, close button styles
+    DragPreview.tsx          # Floating preview that follows cursor during drag
+    DragPreview.module.css   # Fixed-position preview styles
+  utils/
+    storage.ts               # Chrome storage operations (theme, groupBy persistence)
+    tabs.ts                  # Tab helpers (fetchTabs, getDomain, cleanUrl)
+    text.ts                  # Text processing (highlightText, escapeHtml)
+  ConfirmDialog.tsx          # Modal confirmation dialog
+  ConfirmDialog.module.css
 public/
-  manifest.json    # Extension manifest (permissions, service worker, commands)
-  background.js    # Service worker - opens/focuses dashboard tab
-  icons/           # Extension icons (16, 48, 128px)
-popup.html         # HTML entry point
+  manifest.json              # Extension manifest (permissions, service worker, commands)
+  background.js              # Service worker - opens/focuses dashboard tab
+  icons/                     # Extension icons (16, 48, 128px)
+popup.html                   # HTML entry point
 ```
 
 ## Key Features
@@ -60,11 +74,13 @@ popup.html         # HTML entry point
 - `dropTarget: { windowId, index } | null` - current drop target during drag
 
 ### Key Functions
-- `fetchTabs()` - queries chrome.tabs API, filters out dashboard
+- `fetchTabs()` (utils/tabs.ts) - queries chrome.tabs API, filters out dashboard
 - `switchToTab()` - activates tab and focuses its window
 - `closeTab()` / `closeSelectedTabs()` / `closeWindow()` - removal operations
 - `moveTab()` - moves tab to new position/window via `chrome.tabs.move()`
 - `moveTabToNewWindow()` - creates new window with tab via `chrome.windows.create()`
+- `loadTheme()` / `saveTheme()` (utils/storage.ts) - persist theme preference
+- `loadGroupBy()` / `saveGroupBy()` (utils/storage.ts) - persist grouping preference
 
 ### Event Listeners
 The app listens to `chrome.tabs.onCreated`, `onRemoved`, `onUpdated`, and `chrome.windows.onRemoved` to auto-refresh the tab list.
@@ -75,7 +91,7 @@ The app listens to `chrome.tabs.onCreated`, `onRemoved`, `onUpdated`, and `chrom
 
 ## Styling
 
-Theme variables are defined in App.module.css with `[data-theme="dark"]` and `[data-theme="light"]` selectors. Layout uses CSS Grid with `repeat(auto-fit, minmax(500px, 1fr))` for responsive columns.
+Theme variables are defined in App.module.css with `.dark` and `.light` class selectors. CSS variables cascade down to component modules. Each component has its own CSS module for co-located styles. Layout uses CSS Grid with `repeat(auto-fit, minmax(500px, 1fr))` for responsive columns.
 
 ## Build & Development
 
