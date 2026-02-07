@@ -13,7 +13,9 @@
       "Bash(ls:*)",
       "Bash(sips:*)",
       "Bash(convert:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []

@@ -222,7 +222,10 @@
 .windowGroup {
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
+  isolation: isolate;
+  align-self: start;
 }
 
 .windowHeader {
@@ -233,9 +236,6 @@
   background-color: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
   border-radius: 6px 6px 0 0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .windowTitle {
@@ -281,6 +281,8 @@
   cursor: pointer;
   transition: background-color 0.1s;
   gap: 8px;
+  position: relative;
+  user-select: none;
 }
 
 .tabItem:hover {
@@ -393,4 +395,59 @@
 
 .selected {
   background-color: var(--bg-selected);
+}
+
+/* Drag and Drop */
+.dragging {
+  opacity: 0.5;
+  cursor: grabbing !important;
+}
+
+.dropTarget {
+  border-top: 2px solid var(--accent);
+}
+
+.tabItem.draggable {
+  cursor: grab;
+}
+
+.dropZoneEnd {
+  padding: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  border: 2px dashed var(--border-color);
+  border-radius: 4px;
+  margin: 8px;
+  transition: all 0.15s;
+}
+
+.dropZoneEnd.dropZoneActive {
+  border-color: var(--accent);
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.dragPreview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-width: 300px;
+}
+
+.dragPreviewTitle {
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

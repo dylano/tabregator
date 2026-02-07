@@ -2,11 +2,8 @@
   "manifest_version": 3,
   "name": "Tabregator",
   "description": "Manage all your browser tabs across windows from a single dashboard",
-  "version": "1.0.2",
-  "permissions": [
-    "tabs",
-    "storage"
-  ],
+  "version": "1.0.3",
+  "permissions": ["tabs", "storage"],
   "action": {
     "default_title": "Tabregator",
     "default_icon": {

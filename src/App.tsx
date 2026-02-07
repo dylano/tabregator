@@ -51,6 +51,17 @@ interface ConfirmDialogState {
   onConfirm: () => void;
 }
 
+interface DragState {
+  tabId: number;
+  sourceWindowId: number;
+  sourceIndex: number;
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+  isDragging: boolean; // becomes true after mouse moves threshold
+}
+
 function App() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,6 +73,8 @@ function App() {
     message: '',
     onConfirm: () => {},
   });
+  const [dragState, setDragState] = useState<DragState | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ windowId: number; index: number } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -135,7 +148,7 @@ function App() {
       return windowIds.map((windowId, index) => ({
         id: `window-${windowId}`,
         label: `Window ${index + 1}`,
-        tabs: groups[windowId],
+        tabs: groups[windowId].sort((a, b) => a.index - b.index),
       }));
     } else {
       const groups: Record<string, Tab[]> = {};
@@ -196,6 +209,102 @@ function App() {
     confirmDialog.onConfirm();
     closeConfirmDialog();
   }
+
+  async function moveTab(tabId: number, targetWindowId: number, targetIndex: number) {
+    await chrome.tabs.move(tabId, { windowId: targetWindowId, index: targetIndex });
+    const updatedTabs = await fetchTabs();
+    setTabs(updatedTabs);
+  }
+
+  const DRAG_THRESHOLD = 5; // pixels before drag starts
+
+  function handleMouseDown(tab: Tab, e: React.MouseEvent) {
+    // Don't start drag if clicking on checkbox or button
+    if ((e.target as HTMLElement).closest('input, button')) return;
+
+    setDragState({
+      tabId: tab.id!,
+      sourceWindowId: tab.windowId,
+      sourceIndex: tab.index,
+      startX: e.clientX,
+      startY: e.clientY,
+      currentX: e.clientX,
+      currentY: e.clientY,
+      isDragging: false,
+    });
+  }
+
+  function handleMouseUp(switchToTab: () => void) {
+    if (dragState) {
+      if (dragState.isDragging && dropTarget) {
+        // Complete the drag
+        moveTab(dragState.tabId, dropTarget.windowId, dropTarget.index === -1 ? -1 : dropTarget.index);
+      } else if (!dragState.isDragging) {
+        // Was just a click, switch to the tab
+        switchToTab();
+      }
+    }
+    setDragState(null);
+    setDropTarget(null);
+  }
+
+  function handleMouseMoveGlobal(e: MouseEvent) {
+    if (!dragState) return;
+
+    const dx = Math.abs(e.clientX - dragState.startX);
+    const dy = Math.abs(e.clientY - dragState.startY);
+
+    if (!dragState.isDragging && (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD)) {
+      setDragState({ ...dragState, isDragging: true, currentX: e.clientX, currentY: e.clientY });
+    } else if (dragState.isDragging) {
+      setDragState({ ...dragState, currentX: e.clientX, currentY: e.clientY });
+    }
+  }
+
+  function handleMouseEnterTab(windowId: number, index: number) {
+    if (dragState?.isDragging) {
+      setDropTarget({ windowId, index });
+    }
+  }
+
+  // Global mouse listeners for drag
+  useEffect(() => {
+    if (dragState) {
+      const handleGlobalMouseUp = () => {
+        if (dragState.isDragging && dropTarget) {
+          moveTab(dragState.tabId, dropTarget.windowId, dropTarget.index);
+        }
+        setDragState(null);
+        setDropTarget(null);
+      };
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setDragState(null);
+          setDropTarget(null);
+        }
+      };
+
+      document.addEventListener('mousemove', handleMouseMoveGlobal);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMoveGlobal);
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [dragState, dropTarget]);
+
+  // Set body cursor during drag
+  useEffect(() => {
+    if (dragState?.isDragging) {
+      document.body.style.cursor = 'grabbing';
+      return () => {
+        document.body.style.cursor = '';
+      };
+    }
+  }, [dragState?.isDragging]);
 
   async function closeWindow(windowId: number) {
     const tabsInWindow = tabs.filter((t) => t.windowId === windowId);
@@ -346,10 +455,41 @@ function App() {
               onCloseWindow={closeWindow}
               onCloseGroup={closeTabGroup}
               onToggleSelection={toggleSelection}
+              dragState={dragState}
+              dropTarget={dropTarget}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              onMouseEnterTab={handleMouseEnterTab}
             />
           ))
         )}
       </main>
+
+      {/* Drag Preview */}
+      {dragState?.isDragging && (() => {
+        const draggedTab = tabs.find(t => t.id === dragState.tabId);
+        if (!draggedTab) return null;
+        return (
+          <div
+            className={styles.dragPreview}
+            style={{
+              left: dragState.currentX,
+              top: dragState.currentY,
+            }}
+          >
+            {draggedTab.favIconUrl && (
+              <img
+                className={styles.tabFavicon}
+                src={draggedTab.favIconUrl}
+                alt=""
+              />
+            )}
+            <span className={styles.dragPreviewTitle}>
+              {draggedTab.title || 'Untitled'}
+            </span>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -364,6 +504,11 @@ interface TabGroupProps {
   onCloseWindow: (windowId: number) => void;
   onCloseGroup: (tabIds: number[]) => void;
   onToggleSelection: (tabId: number) => void;
+  dragState: DragState | null;
+  dropTarget: { windowId: number; index: number } | null;
+  onMouseDown: (tab: Tab, e: React.MouseEvent) => void;
+  onMouseUp: (switchToTab: () => void) => void;
+  onMouseEnterTab: (windowId: number, index: number) => void;
 }
 
 function TabGroupComponent({
@@ -376,10 +521,17 @@ function TabGroupComponent({
   onCloseWindow,
   onCloseGroup,
   onToggleSelection,
+  dragState,
+  dropTarget,
+  onMouseDown,
+  onMouseUp,
+  onMouseEnterTab,
 }: TabGroupProps) {
   // For window groups, extract the windowId from the group id
   const windowId =
     groupBy === 'window' ? Number(group.id.replace('window-', '')) : null;
+
+  const isDragEnabled = groupBy === 'window';
 
   return (
     <div className={styles.windowGroup}>
@@ -407,7 +559,7 @@ function TabGroupComponent({
           )}
         </div>
       </div>
-      {group.tabs.map((tab) => (
+      {group.tabs.map((tab, index) => (
         <TabItem
           key={tab.id}
           tab={tab}
@@ -416,8 +568,28 @@ function TabGroupComponent({
           onSwitch={() => onSwitchToTab(tab.id!, tab.windowId)}
           onClose={() => onCloseTab(tab.id!)}
           onToggleSelection={() => onToggleSelection(tab.id!)}
+          isDragEnabled={isDragEnabled}
+          isDragging={!!(dragState?.isDragging && dragState?.tabId === tab.id)}
+          isDropTarget={!!(dragState?.isDragging && dropTarget?.windowId === tab.windowId && dropTarget?.index === index)}
+          onMouseDown={(e) => onMouseDown(tab, e)}
+          onMouseUp={() => onMouseUp(() => onSwitchToTab(tab.id!, tab.windowId))}
+          onMouseEnter={() => windowId !== null && onMouseEnterTab(windowId, index)}
         />
       ))}
+      {isDragEnabled && dragState?.isDragging && (
+        <div
+          className={`${styles.dropZoneEnd} ${
+            dropTarget?.windowId === windowId && dropTarget?.index === -1
+              ? styles.dropZoneActive
+              : ''
+          }`}
+          onMouseEnter={() => {
+            if (windowId !== null) onMouseEnterTab(windowId, -1);
+          }}
+        >
+          Drop here to move to end
+        </div>
+      )}
     </div>
   );
 }
@@ -429,6 +601,12 @@ interface TabItemProps {
   onSwitch: () => void;
   onClose: () => void;
   onToggleSelection: () => void;
+  isDragEnabled: boolean;
+  isDragging: boolean;
+  isDropTarget: boolean;
+  onMouseDown: (e: React.MouseEvent) => void;
+  onMouseUp: () => void;
+  onMouseEnter: () => void;
 }
 
 function TabItem({
@@ -438,25 +616,35 @@ function TabItem({
   onSwitch,
   onClose,
   onToggleSelection,
+  isDragEnabled,
+  isDragging,
+  isDropTarget,
+  onMouseDown,
+  onMouseUp,
+  onMouseEnter,
 }: TabItemProps) {
   const title = tab.title || 'Untitled';
   const url = cleanUrl(tab.url || '');
-
-  function handleClick(e: React.MouseEvent) {
-    if ((e.target as HTMLElement).closest('input, button')) return;
-    onSwitch();
-  }
 
   const itemClasses = [
     styles.tabItem,
     tab.active && styles.active,
     isSelected && styles.selected,
+    isDragging && styles.dragging,
+    isDropTarget && styles.dropTarget,
+    isDragEnabled && styles.draggable,
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <div className={itemClasses} onClick={handleClick}>
+    <div
+      className={itemClasses}
+      onClick={isDragEnabled ? undefined : onSwitch}
+      onMouseDown={isDragEnabled ? onMouseDown : undefined}
+      onMouseUp={isDragEnabled ? onMouseUp : undefined}
+      onMouseEnter={isDragEnabled ? onMouseEnter : undefined}
+    >
       <input
         type="checkbox"
         className={styles.tabCheckbox}
