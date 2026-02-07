@@ -1,4 +1,6 @@
-# Tabregator
+<img src="public/icons/icon128.png" alt="Tabregator" width="128" height="128">
+
+# Tabregator 
 
 A Chrome extension for managing all your browser tabs across windows from a single dashboard.
 
