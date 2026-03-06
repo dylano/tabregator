@@ -3,11 +3,19 @@
   display: flex;
   align-items: center;
   padding: 5px 10px;
-  cursor: pointer;
   transition: background-color 0.1s;
   gap: 8px;
   position: relative;
   user-select: none;
+}
+
+.tabClickArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
 }
 
 .tabItem:hover {
@@ -22,13 +30,12 @@
   background-color: var(--bg-selected);
 }
 
-.tabItem.draggable {
-  cursor: grab;
-}
-
 .tabItem.dragging {
   opacity: 0.5;
-  cursor: grabbing !important;
+}
+
+.tabItem.dragging .tabClickArea {
+  cursor: grabbing;
 }
 
 .tabItem.dropTarget {

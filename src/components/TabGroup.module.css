@@ -6,6 +6,7 @@
   position: relative;
   isolation: isolate;
   align-self: start;
+  background-color: var(--bg-secondary);
 }
 
 .windowHeader {
@@ -40,16 +41,16 @@
 .btnCloseWindow {
   padding: 4px 10px;
   font-size: 12px;
-  background-color: transparent;
-  border: 1px solid var(--danger);
-  color: var(--danger);
+  background-color: var(--danger);
+  border: none;
+  color: #fff;
   border-radius: 3px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .btnCloseWindow:hover {
-  background-color: var(--danger);
+  background-color: var(--danger-hover);
   color: #fff;
 }
 

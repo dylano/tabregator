@@ -8,15 +8,25 @@ A Chrome extension for managing all your browser tabs across windows from a sing
 
 - View all open tabs across all Chrome windows
 - Group tabs by window or by domain
-- Search/filter tabs by title in real-time
+- Search/filter tabs by title or URL in real-time
 - Click any tab to switch to it (activates tab and focuses window)
 - Close individual tabs or select multiple tabs to close at once
 - Close entire windows with all their tabs
 - Drag and drop tabs (in window view) to reorder within a window, move between windows, or create a new window
-- Light and dark mode themes with persistent preference
-- Responsive layout: automatically switches to two-column grid on wide screens
 - Auto-updates when tabs or windows are created, closed, or changed
 - Keyboard shortcut to open dashboard: `Cmd+Shift+M` (Mac) / `Ctrl+Shift+M` (Windows/Linux)
+
+## Release Notes
+
+### v1.1.1
+
+- Initial release
+
+### v1.2.0
+
+- Search now matches URLs in addition to tab titles
+- Drag multiple selected tabs at once to move them together
+- New dark mode color palette with improved contrast and readability
 
 ## Development
 
@@ -44,7 +54,7 @@ npm run dev
 ## Usage
 
 - Click the Tabregator icon or press `Cmd+Shift+M` to open the dashboard
-- Type in the search box to filter tabs by title
+- Type in the search box to filter tabs by title or URL (or press `/` to focus)
 - Click a tab row to switch to that tab
 - Use the Window/Domain toggle to group tabs by browser window or by domain
 - Use checkboxes to select multiple tabs, then click "Close Selected"
@@ -54,4 +64,5 @@ npm run dev
   - Drag a tab to reorder it within its window
   - Drag a tab to another window group to move it there
   - Drag a tab to the yellow "Move to new window" zone to open it in a new window
+  - Select multiple tabs and drag any selected tab to move them all together
   - Press ESC while dragging to cancel

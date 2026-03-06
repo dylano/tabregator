@@ -1,29 +1,29 @@
 /* Theme Variables */
 .dark {
-  --bg-primary: #1e1e1e;
-  --bg-secondary: #252526;
-  --bg-tertiary: #2d2d2d;
-  --bg-hover: #2a2a2a;
-  --bg-input: #3c3c3c;
-  --bg-active: #094771;
-  --bg-selected: #37373d;
-  --border-color: #3c3c3c;
-  --border-input: #4a4a4a;
-  --text-primary: #e0e0e0;
-  --text-secondary: #808080;
-  --text-muted: #606060;
-  --accent: #007acc;
-  --danger: #f87171;
-  --danger-hover: #fca5a5;
-  --highlight-bg: #5a5a00;
-  --highlight-text: #fff;
-  --scrollbar-track: #1e1e1e;
-  --scrollbar-thumb: #4a4a4a;
-  --scrollbar-thumb-hover: #5a5a5a;
-  --favicon-placeholder: #4a4a4a;
-  --close-bg: #3d2a2a;
-  --close-border: #f87171;
-  --close-text: #fca5a5;
+  --bg-primary: #1a1d24;
+  --bg-secondary: #282d38;
+  --bg-tertiary: #323844;
+  --bg-hover: #3a424f;
+  --bg-input: #2e333d;
+  --bg-active: #2a4a5c;
+  --bg-selected: #323842;
+  --border-color: #454c5c;
+  --border-input: #454b58;
+  --text-primary: #c8ccd4;
+  --text-secondary: #8b92a5;
+  --text-muted: #8c94a8;
+  --accent: #56b6c2;
+  --danger: #d4856f;
+  --danger-hover: #e09a86;
+  --highlight-bg: #3d4a5c;
+  --highlight-text: #e8f0f8;
+  --scrollbar-track: #1a1d24;
+  --scrollbar-thumb: #3a3f4b;
+  --scrollbar-thumb-hover: #4a5260;
+  --favicon-placeholder: #3a3f4b;
+  --close-bg: #3a2f32;
+  --close-border: #c07a68;
+  --close-text: #e0a090;
 }
 
 .light {

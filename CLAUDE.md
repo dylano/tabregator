@@ -42,17 +42,19 @@ popup.html                   # HTML entry point
 
 - View all tabs across all Chrome windows
 - Group tabs by window or by domain
-- Search/filter tabs by title
+- Search/filter tabs by title or URL
 - Switch to any tab with one click
 - Close individual tabs or entire windows
 - Bulk select and close tabs
 - Light/dark theme with persistence
 - Keyboard shortcut: `Cmd+Shift+M` (Mac) / `Ctrl+Shift+M` (Windows)
+- Press `/` to focus search input
 - Auto-updates when tabs change
 - **Drag and drop** (window grouping mode):
   - Reorder tabs within a window
   - Move tabs between windows
   - Drop on "Move to new window" zone to open tab in a new window
+  - Select multiple tabs and drag to move them together
   - Press ESC to cancel drag
 
 ## Chrome APIs Used
@@ -70,15 +72,15 @@ popup.html                   # HTML entry point
 - `selectedTabIds: Set<number>` - selected for bulk operations
 - `theme: 'light' | 'dark'` - persisted to storage
 - `groupBy: 'window' | 'domain'` - persisted to storage
-- `dragState: DragState | null` - tracks active drag operation (tab id, source window, cursor position)
+- `dragState: DragState | null` - tracks active drag operation (tab ids, source window, cursor position)
 - `dropTarget: { windowId, index } | null` - current drop target during drag
 
 ### Key Functions
 - `fetchTabs()` (utils/tabs.ts) - queries chrome.tabs API, filters out dashboard
 - `switchToTab()` - activates tab and focuses its window
 - `closeTab()` / `closeSelectedTabs()` / `closeWindow()` - removal operations
-- `moveTab()` - moves tab to new position/window via `chrome.tabs.move()`
-- `moveTabToNewWindow()` - creates new window with tab via `chrome.windows.create()`
+- `moveTabs()` - moves one or more tabs to new position/window via `chrome.tabs.move()`
+- `moveTabsToNewWindow()` - creates new window with tabs via `chrome.windows.create()`
 - `loadTheme()` / `saveTheme()` (utils/storage.ts) - persist theme preference
 - `loadGroupBy()` / `saveGroupBy()` (utils/storage.ts) - persist grouping preference
 
@@ -86,7 +88,7 @@ popup.html                   # HTML entry point
 The app listens to `chrome.tabs.onCreated`, `onRemoved`, `onUpdated`, and `chrome.windows.onRemoved` to auto-refresh the tab list.
 
 ### Derived State (useMemo)
-- `filteredTabs` - tabs matching search term
+- `filteredTabs` - tabs matching search term (searches title and URL)
 - `tabGroups` - tabs grouped by window ID or domain
 
 ## Styling
