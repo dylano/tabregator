@@ -1,12 +1,15 @@
 import styles from './DragPreview.module.css';
 
 export interface DragPreviewProps {
-  tab: chrome.tabs.Tab;
+  tabs: chrome.tabs.Tab[];
   x: number;
   y: number;
 }
 
-export function DragPreview({ tab, x, y }: DragPreviewProps) {
+export function DragPreview({ tabs, x, y }: DragPreviewProps) {
+  const firstTab = tabs[0];
+  const count = tabs.length;
+
   return (
     <div
       className={styles.dragPreview}
@@ -15,10 +18,12 @@ export function DragPreview({ tab, x, y }: DragPreviewProps) {
         top: y,
       }}
     >
-      {tab.favIconUrl && (
-        <img className={styles.dragPreviewFavicon} src={tab.favIconUrl} alt="" />
+      {firstTab.favIconUrl && (
+        <img className={styles.dragPreviewFavicon} src={firstTab.favIconUrl} alt="" />
       )}
-      <span className={styles.dragPreviewTitle}>{tab.title || 'Untitled'}</span>
+      <span className={styles.dragPreviewTitle}>
+        {count > 1 ? `${count} tabs` : firstTab.title || 'Untitled'}
+      </span>
     </div>
   );
 }

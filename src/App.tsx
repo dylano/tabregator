@@ -165,21 +165,27 @@ function App() {
     closeConfirmDialog();
   }
 
-  async function moveTab(
-    tabId: number,
+  async function moveTabs(
+    tabIds: number[],
     targetWindowId: number,
     targetIndex: number,
   ) {
-    await chrome.tabs.move(tabId, {
+    await chrome.tabs.move(tabIds, {
       windowId: targetWindowId,
       index: targetIndex,
     });
+    setSelectedTabIds(new Set());
     const updatedTabs = await fetchTabs();
     setTabs(updatedTabs);
   }
 
-  async function moveTabToNewWindow(tabId: number) {
-    await chrome.windows.create({ tabId, focused: false });
+  async function moveTabsToNewWindow(tabIds: number[]) {
+    const [firstTabId, ...restTabIds] = tabIds;
+    const newWindow = await chrome.windows.create({ tabId: firstTabId, focused: false });
+    if (restTabIds.length > 0 && newWindow?.id) {
+      await chrome.tabs.move(restTabIds, { windowId: newWindow.id, index: -1 });
+    }
+    setSelectedTabIds(new Set());
     const updatedTabs = await fetchTabs();
     setTabs(updatedTabs);
   }
@@ -189,8 +195,13 @@ function App() {
   function handleMouseDown(tab: chrome.tabs.Tab, e: React.MouseEvent) {
     if ((e.target as HTMLElement).closest('input, button')) return;
 
+    // If dragging a selected tab, drag all selected tabs; otherwise just this one
+    const tabIds = selectedTabIds.has(tab.id!)
+      ? Array.from(selectedTabIds)
+      : [tab.id!];
+
     setDragState({
-      tabId: tab.id!,
+      tabIds,
       sourceWindowId: tab.windowId,
       sourceIndex: tab.index,
       startX: e.clientX,
@@ -204,8 +215,8 @@ function App() {
   function handleMouseUp(switchToTab: () => void) {
     if (dragState) {
       if (dragState.isDragging && dropTarget) {
-        moveTab(
-          dragState.tabId,
+        moveTabs(
+          dragState.tabIds,
           dropTarget.windowId,
           dropTarget.index === -1 ? -1 : dropTarget.index,
         );
@@ -247,9 +258,9 @@ function App() {
       const handleGlobalMouseUp = () => {
         if (dragState.isDragging && dropTarget) {
           if (dropTarget.windowId === -1) {
-            moveTabToNewWindow(dragState.tabId);
+            moveTabsToNewWindow(dragState.tabIds);
           } else {
-            moveTab(dragState.tabId, dropTarget.windowId, dropTarget.index);
+            moveTabs(dragState.tabIds, dropTarget.windowId, dropTarget.index);
           }
         }
         setDragState(null);
@@ -344,9 +355,9 @@ function App() {
     theme === 'dark' ? styles.dark : styles.light,
   ].join(' ');
 
-  const draggedTab = dragState?.isDragging
-    ? tabs.find((t) => t.id === dragState.tabId)
-    : null;
+  const draggedTabs = dragState?.isDragging
+    ? tabs.filter((t) => dragState.tabIds.includes(t.id!))
+    : [];
 
   return (
     <div className={containerClasses}>
@@ -457,9 +468,9 @@ function App() {
         )}
       </main>
 
-      {draggedTab && dragState && (
+      {draggedTabs.length > 0 && dragState && (
         <DragPreview
-          tab={draggedTab}
+          tabs={draggedTabs}
           x={dragState.currentX}
           y={dragState.currentY}
         />

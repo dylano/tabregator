@@ -8,7 +8,7 @@ export interface TabGroup {
 }
 
 export interface DragState {
-  tabId: number;
+  tabIds: number[];
   sourceWindowId: number;
   sourceIndex: number;
   startX: number;

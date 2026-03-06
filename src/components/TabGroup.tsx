@@ -76,7 +76,7 @@ export function TabGroup({
           onClose={() => onCloseTab(tab.id!)}
           onToggleSelection={() => onToggleSelection(tab.id!)}
           isDragEnabled={isDragEnabled}
-          isDragging={!!(dragState?.isDragging && dragState?.tabId === tab.id)}
+          isDragging={!!(dragState?.isDragging && dragState?.tabIds.includes(tab.id!))}
           isDropTarget={
             !!(
               dragState?.isDragging &&
