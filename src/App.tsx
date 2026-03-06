@@ -46,6 +46,20 @@ function App() {
     return () => window.removeEventListener('focus', handleWindowFocus);
   }, []);
 
+  // Press / to focus search input
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '/' && document.activeElement !== searchInputRef.current) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Update body background when theme changes
   useEffect(() => {
     document.body.style.backgroundColor =

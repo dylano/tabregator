@@ -48,9 +48,6 @@ export function TabItem({
   return (
     <div
       className={itemClasses}
-      onClick={isDragEnabled ? undefined : onSwitch}
-      onMouseDown={isDragEnabled ? onMouseDown : undefined}
-      onMouseUp={isDragEnabled ? onMouseUp : undefined}
       onMouseEnter={isDragEnabled ? onMouseEnter : undefined}
     >
       <input
@@ -58,30 +55,36 @@ export function TabItem({
         className={styles.tabCheckbox}
         checked={isSelected}
         onChange={onToggleSelection}
-        onClick={(e) => e.stopPropagation()}
       />
-      {tab.favIconUrl ? (
-        <img
-          className={styles.tabFavicon}
-          src={tab.favIconUrl}
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
-      ) : (
-        <div className={styles.tabFaviconPlaceholder} />
-      )}
-      <div className={styles.tabInfo}>
-        <div
-          className={styles.tabTitle}
-          title={title}
-          dangerouslySetInnerHTML={{ __html: highlightText(title, searchTerm) }}
-        />
-        <div
-          className={styles.tabUrl}
-          title={tab.url}
-          dangerouslySetInnerHTML={{ __html: highlightText(url, searchTerm) }}
-        />
+      <div
+        className={styles.tabClickArea}
+        onClick={isDragEnabled ? undefined : onSwitch}
+        onMouseDown={isDragEnabled ? onMouseDown : undefined}
+        onMouseUp={isDragEnabled ? onMouseUp : undefined}
+      >
+        {tab.favIconUrl ? (
+          <img
+            className={styles.tabFavicon}
+            src={tab.favIconUrl}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className={styles.tabFaviconPlaceholder} />
+        )}
+        <div className={styles.tabInfo}>
+          <div
+            className={styles.tabTitle}
+            title={title}
+            dangerouslySetInnerHTML={{ __html: highlightText(title, searchTerm) }}
+          />
+          <div
+            className={styles.tabUrl}
+            title={tab.url}
+            dangerouslySetInnerHTML={{ __html: highlightText(url, searchTerm) }}
+          />
+        </div>
       </div>
       <button className={styles.tabClose} title="Close tab" onClick={onClose}>
         x
