@@ -82,7 +82,11 @@ function App() {
   const filteredTabs = useMemo(() => {
     if (!searchTerm.trim()) return tabs;
     const term = searchTerm.toLowerCase();
-    return tabs.filter((tab) => tab.title?.toLowerCase().includes(term));
+    return tabs.filter(
+      (tab) =>
+        tab.title?.toLowerCase().includes(term) ||
+        tab.url?.toLowerCase().includes(term),
+    );
   }, [tabs, searchTerm]);
 
   const tabGroups = useMemo((): TabGroupType[] => {

@@ -77,9 +77,11 @@ export function TabItem({
           title={title}
           dangerouslySetInnerHTML={{ __html: highlightText(title, searchTerm) }}
         />
-        <div className={styles.tabUrl} title={tab.url}>
-          {url}
-        </div>
+        <div
+          className={styles.tabUrl}
+          title={tab.url}
+          dangerouslySetInnerHTML={{ __html: highlightText(url, searchTerm) }}
+        />
       </div>
       <button className={styles.tabClose} title="Close tab" onClick={onClose}>
         x
