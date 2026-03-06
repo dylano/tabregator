@@ -49,7 +49,7 @@ function App() {
   // Update body background when theme changes
   useEffect(() => {
     document.body.style.backgroundColor =
-      theme === 'dark' ? '#1e1e1e' : '#ffffff';
+      theme === 'dark' ? '#1a1d24' : '#ffffff';
   }, [theme]);
 
   // Load tabs and listen for changes
