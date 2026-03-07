@@ -2,7 +2,7 @@
 
 # Tabregator
 
-A Chrome extension for managing all your browser tabs across windows from a single dashboard.
+A [Chrome extension]([url](https://chromewebstore.google.com/detail/tabregator/fhfgolaehjhkidopleohcmdehoaaeljo)) for managing all your browser tabs across windows from a single dashboard.
 
 ## Features
 
