@@ -1,5 +1,6 @@
 export type Theme = 'light' | 'dark';
 export type GroupBy = 'window' | 'domain';
+export type SearchMode = 'filter' | 'highlight';
 
 export interface TabGroup {
   id: string;

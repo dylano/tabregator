@@ -22,12 +22,16 @@
   background-color: var(--bg-hover);
 }
 
-.tabItem.active {
-  background-color: var(--bg-active);
-}
-
 .tabItem.selected {
   background-color: var(--bg-selected);
+}
+
+.tabItem.highlighted {
+  background-color: var(--highlight-bg);
+}
+
+.tabItem.dimmed {
+  opacity: 0.4;
 }
 
 .tabItem.dragging {

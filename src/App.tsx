@@ -3,8 +3,8 @@ import styles from './App.module.css';
 import { ConfirmDialog } from './ConfirmDialog';
 import { TabGroup } from './components/TabGroup';
 import { DragPreview } from './components/DragPreview';
-import type { Theme, GroupBy, TabGroup as TabGroupType, DragState, DropTarget } from './types';
-import { loadTheme, saveTheme, loadGroupBy, saveGroupBy } from './utils/storage';
+import type { Theme, GroupBy, SearchMode, TabGroup as TabGroupType, DragState, DropTarget } from './types';
+import { loadTheme, saveTheme, loadGroupBy, saveGroupBy, loadSearchMode, saveSearchMode } from './utils/storage';
 import { fetchTabs, getDomain } from './utils/tabs';
 
 interface ConfirmDialogState {
@@ -19,6 +19,7 @@ function App() {
   const [selectedTabIds, setSelectedTabIds] = useState<Set<number>>(new Set());
   const [theme, setTheme] = useState<Theme>('light');
   const [groupBy, setGroupBy] = useState<GroupBy>('window');
+  const [searchMode, setSearchMode] = useState<SearchMode>('highlight');
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({
     isOpen: false,
     message: '',
@@ -29,10 +30,11 @@ function App() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // Load theme and groupBy on mount
+  // Load theme, groupBy, and searchMode on mount
   useEffect(() => {
     loadTheme().then(setTheme);
     loadGroupBy().then(setGroupBy);
+    loadSearchMode().then(setSearchMode);
   }, []);
 
   // Focus and select search input when window gains focus
@@ -93,15 +95,30 @@ function App() {
     saveTheme(newTheme);
   }
 
+  const matchingTabIds = useMemo(() => {
+    if (!searchTerm.trim()) return new Set<number>();
+    const term = searchTerm.toLowerCase();
+    return new Set(
+      tabs
+        .filter(
+          (tab) =>
+            tab.title?.toLowerCase().includes(term) ||
+            tab.url?.toLowerCase().includes(term),
+        )
+        .map((tab) => tab.id!)
+    );
+  }, [tabs, searchTerm]);
+
   const filteredTabs = useMemo(() => {
     if (!searchTerm.trim()) return tabs;
+    if (searchMode === 'highlight') return tabs;
     const term = searchTerm.toLowerCase();
     return tabs.filter(
       (tab) =>
         tab.title?.toLowerCase().includes(term) ||
         tab.url?.toLowerCase().includes(term),
     );
-  }, [tabs, searchTerm]);
+  }, [tabs, searchTerm, searchMode]);
 
   const tabGroups = useMemo((): TabGroupType[] => {
     if (groupBy === 'window') {
@@ -360,8 +377,6 @@ function App() {
     });
   }
 
-  const tabCount = filteredTabs.length;
-  const totalCount = tabs.length;
   const selectedCount = selectedTabIds.size;
 
   const containerClasses = [
@@ -394,11 +409,44 @@ function App() {
         />
         <div className={styles.headerActions}>
           <div className={styles.headerLeft}>
-            <span className={styles.tabCount}>
-              {tabCount === totalCount
-                ? `${totalCount} tab${totalCount !== 1 ? 's' : ''}`
-                : `${tabCount} of ${totalCount} tabs`}
-            </span>
+            Search:
+            <div className={styles.toggleSwitch}>
+              <button
+                className={`${styles.toggleOption} ${
+                  searchMode === 'highlight' ? styles.toggleActive : ''
+                }`}
+                onClick={() => {
+                  setSearchMode('highlight');
+                  saveSearchMode('highlight');
+                }}
+                title="Show all tabs, highlight matches"
+              >
+                Highlight
+              </button>
+              <button
+                className={`${styles.toggleOption} ${
+                  searchMode === 'filter' ? styles.toggleActive : ''
+                }`}
+                onClick={() => {
+                  setSearchMode('filter');
+                  saveSearchMode('filter');
+                }}
+                title="Only show matching tabs"
+              >
+                Filter
+              </button>
+            </div>
+          </div>
+          <div className={styles.headerCenter}>
+            <button
+              className={`${styles.btn} ${styles.btnDanger}`}
+              disabled={selectedCount === 0}
+              onClick={closeSelectedTabs}
+            >
+              {selectedCount > 0
+                ? `Close Selected (${selectedCount})`
+                : 'Close Selected'}
+            </button>
           </div>
           <div className={styles.headerRight}>
             Group by:
@@ -433,15 +481,6 @@ function App() {
             >
               {theme === 'light' ? '🌙' : '☀️'}
             </button>
-            <button
-              className={`${styles.btn} ${styles.btnDanger}`}
-              disabled={selectedCount === 0}
-              onClick={closeSelectedTabs}
-            >
-              {selectedCount > 0
-                ? `Close Selected (${selectedCount})`
-                : 'Close Selected'}
-            </button>
           </div>
         </div>
       </header>
@@ -466,6 +505,8 @@ function App() {
               group={group}
               groupBy={groupBy}
               searchTerm={searchTerm}
+              searchMode={searchMode}
+              matchingTabIds={matchingTabIds}
               selectedTabIds={selectedTabIds}
               onSwitchToTab={switchToTab}
               onCloseTab={closeTab}

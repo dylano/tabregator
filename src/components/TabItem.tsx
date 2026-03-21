@@ -6,6 +6,8 @@ export interface TabItemProps {
   tab: chrome.tabs.Tab;
   searchTerm: string;
   isSelected: boolean;
+  isHighlighted: boolean;
+  isDimmed: boolean;
   onSwitch: () => void;
   onClose: () => void;
   onToggleSelection: () => void;
@@ -21,6 +23,8 @@ export function TabItem({
   tab,
   searchTerm,
   isSelected,
+  isHighlighted,
+  isDimmed,
   onSwitch,
   onClose,
   onToggleSelection,
@@ -36,8 +40,9 @@ export function TabItem({
 
   const itemClasses = [
     styles.tabItem,
-    tab.active && styles.active,
     isSelected && styles.selected,
+    isHighlighted && styles.highlighted,
+    isDimmed && styles.dimmed,
     isDragging && styles.dragging,
     isDropTarget && styles.dropTarget,
     isDragEnabled && styles.draggable,
