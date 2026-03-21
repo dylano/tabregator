@@ -46,6 +46,14 @@
   border-top: 2px solid var(--accent);
 }
 
+.pinIcon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 2px;
+  color: var(--text-muted);
+}
+
 .tabCheckbox {
   flex-shrink: 0;
   width: 20px;

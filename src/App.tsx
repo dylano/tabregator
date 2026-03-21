@@ -201,6 +201,26 @@ function App() {
     targetWindowId: number,
     targetIndex: number,
   ) {
+    // Count pinned tabs in target window to determine pinned/unpinned boundary
+    const targetWindowTabs = tabs.filter((t) => t.windowId === targetWindowId);
+    const pinnedCount = targetWindowTabs.filter((t) => t.pinned).length;
+
+    // Determine if we're dropping into the pinned section
+    const shouldPin = targetIndex !== -1 && targetIndex < pinnedCount;
+
+    // Check current pinned state of dragged tabs
+    const draggedTabs = tabs.filter((t) => tabIds.includes(t.id!));
+    const areCurrentlyPinned = draggedTabs.some((t) => t.pinned);
+
+    // Update pinned state if needed
+    if (shouldPin && !areCurrentlyPinned) {
+      // Pin tabs before moving (so they can be placed in pinned section)
+      await Promise.all(tabIds.map((id) => chrome.tabs.update(id, { pinned: true })));
+    } else if (!shouldPin && areCurrentlyPinned) {
+      // Unpin tabs before moving (so they can be placed in unpinned section)
+      await Promise.all(tabIds.map((id) => chrome.tabs.update(id, { pinned: false })));
+    }
+
     await chrome.tabs.move(tabIds, {
       windowId: targetWindowId,
       index: targetIndex,
