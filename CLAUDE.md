@@ -5,7 +5,7 @@ A Chrome extension for managing all browser tabs across windows from a single da
 ## Tech Stack
 
 - **React 19** with TypeScript (strict mode)
-- **Vite** (rolldown-vite) for bundling
+- **Vite 8** with Rolldown bundler
 - **CSS Modules** for component-scoped styling
 - **Chrome Extension Manifest V3**
 
@@ -17,7 +17,7 @@ src/
   App.module.css             # Theme variables, layout, header, buttons
   main.tsx                   # React entry point
   index.css                  # Global styles
-  types.ts                   # Shared TypeScript types (Theme, GroupBy, DragState, etc.)
+  types.ts                   # Shared TypeScript types (Theme, GroupBy, SearchMode, DragState, etc.)
   components/
     TabGroup.tsx             # Window/domain group with header and tab list
     TabGroup.module.css      # Group container, header, close button styles
@@ -26,7 +26,7 @@ src/
     DragPreview.tsx          # Floating preview that follows cursor during drag
     DragPreview.module.css   # Fixed-position preview styles
   utils/
-    storage.ts               # Chrome storage operations (theme, groupBy persistence)
+    storage.ts               # Chrome storage operations (theme, groupBy, searchMode persistence)
     tabs.ts                  # Tab helpers (fetchTabs, getDomain, cleanUrl)
     text.ts                  # Text processing (highlightText, escapeHtml)
   ConfirmDialog.tsx          # Modal confirmation dialog
@@ -42,7 +42,7 @@ popup.html                   # HTML entry point
 
 - View all tabs across all Chrome windows
 - Group tabs by window or by domain
-- Search/filter tabs by title or URL
+- Search tabs by title or URL with highlight or filter mode
 - Switch to any tab with one click
 - Close individual tabs or entire windows
 - Bulk select and close tabs
@@ -50,11 +50,13 @@ popup.html                   # HTML entry point
 - Keyboard shortcut: `Cmd+Shift+M` (Mac) / `Ctrl+Shift+M` (Windows)
 - Press `/` to focus search input
 - Auto-updates when tabs change
+- Pinned tabs displayed with pin icon; dragging can pin/unpin tabs
 - **Drag and drop** (window grouping mode):
   - Reorder tabs within a window
   - Move tabs between windows
   - Drop on "Move to new window" zone to open tab in a new window
   - Select multiple tabs and drag to move them together
+  - Drag into/out of pinned section to pin/unpin tabs
   - Press ESC to cancel drag
 
 ## Chrome APIs Used
@@ -72,6 +74,7 @@ popup.html                   # HTML entry point
 - `selectedTabIds: Set<number>` - selected for bulk operations
 - `theme: 'light' | 'dark'` - persisted to storage
 - `groupBy: 'window' | 'domain'` - persisted to storage
+- `searchMode: 'filter' | 'highlight'` - persisted to storage
 - `dragState: DragState | null` - tracks active drag operation (tab ids, source window, cursor position)
 - `dropTarget: { windowId, index } | null` - current drop target during drag
 
@@ -83,12 +86,14 @@ popup.html                   # HTML entry point
 - `moveTabsToNewWindow()` - creates new window with tabs via `chrome.windows.create()`
 - `loadTheme()` / `saveTheme()` (utils/storage.ts) - persist theme preference
 - `loadGroupBy()` / `saveGroupBy()` (utils/storage.ts) - persist grouping preference
+- `loadSearchMode()` / `saveSearchMode()` (utils/storage.ts) - persist search mode preference
 
 ### Event Listeners
 The app listens to `chrome.tabs.onCreated`, `onRemoved`, `onUpdated`, and `chrome.windows.onRemoved` to auto-refresh the tab list.
 
 ### Derived State (useMemo)
-- `filteredTabs` - tabs matching search term (searches title and URL)
+- `matchingTabIds` - set of tab IDs matching the search term (for highlight mode)
+- `filteredTabs` - tabs matching search term (in filter mode) or all tabs (in highlight mode)
 - `tabGroups` - tabs grouped by window ID or domain
 
 ## Styling

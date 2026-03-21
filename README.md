@@ -28,9 +28,15 @@ A [Chrome extension](https://chromewebstore.google.com/detail/tabregator/fhfgola
 - Drag multiple selected tabs at once to move them together
 - New dark mode color palette with improved contrast and readability
 
+### v1.3.0
+
+- New search mode toggle: "Highlight" shows all tabs with matches highlighted, "Filter" only shows matching tabs
+- Pinned tabs are now displayed with a pin indicator
+- Upgraded to Vite 8 with Rolldown bundler for faster builds
+
 ## Development
 
-Requires Node.js 20.19+ or 22.12+ (Node 24 recommended).
+Requires Node.js 24 (run `nvm use 24` if using nvm).
 
 ```bash
 # Install dependencies

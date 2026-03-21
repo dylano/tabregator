@@ -1,11 +1,13 @@
 import styles from './TabGroup.module.css';
-import type { TabGroup as TabGroupType, GroupBy, DragState, DropTarget } from '../types';
+import type { TabGroup as TabGroupType, GroupBy, SearchMode, DragState, DropTarget } from '../types';
 import { TabItem } from './TabItem';
 
 export interface TabGroupProps {
   group: TabGroupType;
   groupBy: GroupBy;
   searchTerm: string;
+  searchMode: SearchMode;
+  matchingTabIds: Set<number>;
   selectedTabIds: Set<number>;
   onSwitchToTab: (tabId: number, windowId: number) => void;
   onCloseTab: (tabId: number) => void;
@@ -23,6 +25,8 @@ export function TabGroup({
   group,
   groupBy,
   searchTerm,
+  searchMode,
+  matchingTabIds,
   selectedTabIds,
   onSwitchToTab,
   onCloseTab,
@@ -66,31 +70,39 @@ export function TabGroup({
           )}
         </div>
       </div>
-      {group.tabs.map((tab, index) => (
-        <TabItem
-          key={tab.id}
-          tab={tab}
-          searchTerm={searchTerm}
-          isSelected={selectedTabIds.has(tab.id!)}
-          onSwitch={() => onSwitchToTab(tab.id!, tab.windowId)}
-          onClose={() => onCloseTab(tab.id!)}
-          onToggleSelection={() => onToggleSelection(tab.id!)}
-          isDragEnabled={isDragEnabled}
-          isDragging={!!(dragState?.isDragging && dragState?.tabIds.includes(tab.id!))}
-          isDropTarget={
-            !!(
-              dragState?.isDragging &&
-              dropTarget?.windowId === tab.windowId &&
-              dropTarget?.index === index
-            )
-          }
-          onMouseDown={(e) => onMouseDown(tab, e)}
-          onMouseUp={() => onMouseUp(() => onSwitchToTab(tab.id!, tab.windowId))}
-          onMouseEnter={() =>
-            windowId !== null && onMouseEnterTab(windowId, index)
-          }
-        />
-      ))}
+      {group.tabs.map((tab, index) => {
+        const isMatch = matchingTabIds.has(tab.id!);
+        const hasSearch = searchTerm.trim() !== '';
+        const inHighlightMode = searchMode === 'highlight' && hasSearch;
+        const noMatches = matchingTabIds.size === 0;
+        return (
+          <TabItem
+            key={tab.id}
+            tab={tab}
+            searchTerm={searchTerm}
+            isSelected={selectedTabIds.has(tab.id!)}
+            isHighlighted={inHighlightMode && isMatch}
+            isDimmed={inHighlightMode && noMatches}
+            onSwitch={() => onSwitchToTab(tab.id!, tab.windowId)}
+            onClose={() => onCloseTab(tab.id!)}
+            onToggleSelection={() => onToggleSelection(tab.id!)}
+            isDragEnabled={isDragEnabled}
+            isDragging={!!(dragState?.isDragging && dragState?.tabIds.includes(tab.id!))}
+            isDropTarget={
+              !!(
+                dragState?.isDragging &&
+                dropTarget?.windowId === tab.windowId &&
+                dropTarget?.index === index
+              )
+            }
+            onMouseDown={(e) => onMouseDown(tab, e)}
+            onMouseUp={() => onMouseUp(() => onSwitchToTab(tab.id!, tab.windowId))}
+            onMouseEnter={() =>
+              windowId !== null && onMouseEnterTab(windowId, index)
+            }
+          />
+        );
+      })}
       {isDragEnabled && (
         <div
           className={`${styles.dropZoneEnd} ${
