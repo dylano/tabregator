@@ -32,22 +32,11 @@ A [Chrome extension](https://chromewebstore.google.com/detail/tabregator/fhfgola
 
 - New search mode toggle: "Highlight" shows all tabs with matches highlighted, "Filter" only shows matching tabs
 - Pinned tabs are now displayed with a pin indicator
-- Upgraded to Vite 8 with Rolldown bundler for faster builds
+- Upgraded to Vite 8
 
 ## Development
 
-Requires Node.js 24 (run `nvm use 24` if using nvm).
-
-```bash
-# Install dependencies
-npm install
-
-# Build the extension
-npm run build
-
-# Development mode with hot reload
-npm run dev
-```
+Requires Node.js 24
 
 ## Installation
 
